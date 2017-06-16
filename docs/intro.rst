@@ -4,7 +4,6 @@
 
    Nothing in the world takes place without optimization, and there is no doubt that all aspects of the world that have a rational basis can be explained by optimization methods.  Leonhard Euler, 1744 (translation found in "Optimization Stories", edited by Martin Grötschel).
 
-   
 ********************************************************************************
 Introduction
 ********************************************************************************
@@ -23,16 +22,16 @@ Section :ref:`intopt` introduces an integer optimization model by adding integer
 A simple transportation problem,  which is a special form of the linear optimization problem,  along with its solution is discussed in Section :ref:`transp`.  Here we show how to model an optimization problem as a function, using SCIP/Python.
 Section :ref:`duality` explains duality, an important theoretical background of linear optimization, by taking a transportation problem as an example.
 Section :ref:`mptransp` presents a multi-commodity transportation problem, which is an generalization of the transportation, and describes how to handle sparse data with SCIP/Python.
-Section :ref:`mixtureXXXXX` introduces mixture problems as an application example of linear optimization.
-Section :ref:`fractionXXXXX` presents the fraction optimization problem, showing two ways to reduce it to a linear problem.
+Section :ref:`blending` introduces mixture problems as an application example of linear optimization.
+Section :ref:`fraction` presents the fraction optimization problem, showing two ways to reduce it to a linear problem.
 Section :ref:`mkp` illustrates a knapsack problem with details of its solution procedure, including an explanation on how to debug a formulation.
-Section :ref:`dietXXXXX` considers how to cope with nutritional problems, showing an example of an optimization problem with no solution.
+Section :ref:`diet` considers how to cope with nutritional problems, showing an example of an optimization problem with no solution.
 
 
 .. _matopt:
 
 Mathematical Optimization
-============================
+================================================================================   
 
 Let us start by describing what mathematical optimization is: it is the science of finding the “best” solution based on a given objective function, i.e., finding a solution which is at least as good and any other possible solution.  In order to do this, we must start by describing the actual problem in terms of mathematical formulas; then, we will need a methodology to obtain an optimal solution from these formulas.  Usually, these formulas consist of constraints, describing conditions that must be satisfied, and by an objective function.
 
@@ -83,30 +82,7 @@ For example,
 
 is a linear optimization problem.
 
-How does one derive such a model?  As an illustration, let us consider a simple business problem. A wine making company has orders for at least 10 barrels of desert wine. It may use grapes produced in its own vineyards (one thousand baskets yield 5 barrels) or bought in the neighborhood (the yield being 6 barrels per thousand baskets in this case). Processing one thousand baskets produced in its own vineyards requires 7 man-months, but processing the same quantity procured in the neighborhood requires only 5 man-month; the company committed to use a workforce of at least 5 man-months. The cost for producing grapes in the company’s vineyards is 3 euros per basket, whereas buying from neighbors costs 4 euros per basket.
-
-.. index::
-   single: non-negativity constraints
-   single: sign restrictions
-
-This problem is very simple but it is not immediately obvious what the company should do. First of all, let us consider the *variables* under its control: the amount of grapes to produce, and the amount to buy in the neighborhood. Let us call them :math:`x` and :math:`y`, respectively, and their unit be one thousand baskets. If the aim of the company is to minimize total cost, the function that represents it is :math:`3 x + 4 y`; this is the *objective* that the company wants to minimize. There are *constraints*: the first, requiring the production to be at least the quantity ordered, can be stated as :math:`5 x + 6 y \geq 10`; the second, related to the use of workforce, can be written as :math:`7 x + 5 y \geq 5`. The third constraints force the quantities :math:`x` and :math:`y` to be non-negative real numbers and are commonly referred to as *non-negativity constraints*, or as *sign restrictions*.
-
-This optimization problem can now be stated as a the previous mathematical model.
-
-As there are only two variables, this model can be represented graphically on the 2-dimensional Cartesian coordinate system. As the variables are non-negative, the region of interest is the first quadrant. There is a straight line related to each of the constraints; e.g., on the limit of the quantity produced :math:`5 x + 6 y = 10`. If we represent this line, it will divide the space into two regions: one where all the points satisfy the constraint, and the other where none satisfy the constraint. These are called *halfspaces*; the region that satisfies all constraints is shadowed in Figure :ref:`simplelp`.
-
-As for the objective function, a straight line :math:`3000x + 4000y = z` represents all the points in the space with a given value :math:`z` of the cost; an example is the dashed line in Figure :ref:`simplelp`. By changing the value of :math:`z`, this line can be moved parallel to itself and we may want to do this along the direction of minimization for finding the optimum. In fact, the last point in the feasible region that intersects this line satisfies all constraints and indeed happens to be the optimum.
-
-.. _simplelp:
-.. figure:: FIGS/lp1.png
-   :scale: 50 %
-   :align: left
-
-   Feasible region
-
-   A simple linear-optimization model with two variables.
-
-One of the important features of linear optimization problems is that they are easy to solve.  Common texts on mathematical optimization describe in lengthy detail how a linear optimization problem can be solved.  Taking the extreme case, for most practitioners, how to solve a linear optimization problem is not important.  For details on how methods for solving these problems have emerged, see :ref:`margin seminar 1`.  Most of the software packages for mathematical optimization support linear optimization.  Given a description of the problem, an optimum solution (i.e., a solution that is guaranteed to be the best answer) to most of the practical problems can be obtained in an extremely short time.
+One of the important features of linear optimization problems is that they are easy to solve.  Common texts on mathematical optimization describe in lengthy detail how a linear optimization problem can be solved.  Taking the extreme case, for most practitioners, how to solve a linear optimization problem is not important.  For details on how methods for solving these problems have emerged, see :ref:`Margin seminar 1 <seminar1>`.  Most of the software packages for mathematical optimization support linear optimization.  Given a description of the problem, an optimum solution (i.e., a solution that is guaranteed to be the best answer) to most of the practical problems can be obtained in an extremely short time.
 
 Unfortunately, not all the problems that we find in the real world can be described as a linear optimization problem.  Simple linear expressions are not enough to accurately represent many complex conditions that occur in practice.  In general, optimization problems that do not fit in the linear optimization paradigm are called *nonlinear optimization* problems.
 
@@ -125,27 +101,20 @@ A different complication arises when some of the variables must take on integer 
 .. _linopt:
 
 Linear Optimization
-===================
+================================================================================   
+
+.. index::
+   single: variable; continuous variable; real variable
+   single: constraint
+   single: objective function
+   single: optimum
+   single: solution
+   single: optimal solution
+   single: linear optimization problem
+   single: non-negativity constraint
+   single: sign restriction
 
 We begin with a simple linear optimization problem; the goal is to explain the terminology commonly used optimization.
-
-Consider the following situation.  A wine making company want to know how to blend the wines produced in 2015 into the brands it commercializes.  Wines belong to three different grape varieties: Alfrocheiro (A), Baga (B) and Castelão (C). The brands are Queijas (Q), Ramada (R) and Salto (S). The proportions required for each of them, as well as the number of pure-grape wine barrels available, and profit associated with each blend, are provided in Table :ref:`wines`.
-
-.. _wines:
-
-.. table:: The wine blending problem.
-
-    =============     ==========    ========    ========     ===============
-    \                 Q Queijas     R Ramada    S Salto      *availability*
-    =============     ==========    ========    ========     ===============
-    A Alfrocheiro     2             1           1            60 
-    B Baga            1             2           1            60 
-    C Castelão                                  1            20 
-    *profit*          15            18          30            
-    =============     ==========    ========    ========     ===============
-
-
-We immediately reveal the mathematical model that describes this situation.
 
 .. math::
 
@@ -156,55 +125,15 @@ We immediately reveal the mathematical model that describes this situation.
      &                         &    x_1, &       & x_2,   &       &    x_3   & \geq & 0
 
     
-.. index::
-   single: continuous variables
-   single: real variables
-   single: constraints
-   single: objective function
-   single: optimum
-   single: optimum solution
-   single: linear optimization problem
+Let us start by explaining the meaning of :math:`x_1, x_2, x_3`: these are values that we do not know, and which can change continuously; hence, they are called *variables*.
 
-In this case the *variables* --- the unknown values whose magnitude we want to determine --- are the amounts of each brand Queijas, Ramada, and Salto to be produced; we call them :math:`x_1`, :math:`x_2` and :math:`x_3`.
+The first expression defines the function to be maximized, which is called the *objective function*.
 
-The first expression,  :math:`15 x_1 + 18 x_2 + 30 x_3`,  determines the total profit in terms of the variables; this defines the function that we want to maximize, which is called the *objective function*.
+The second and subsequent expressions restrict the value of the variables  :math:`x1, x2, x3`, and are commonly referred to as *constraints*.  Expressions ensuring that the variables are non-negative :math:`(x1, x2, x3 \geq 0)` have the specific name of *sign restrictions* or *non-negativity constraints*.  As these variables can take any  non-negative real number, they are called *real variables*, or *continuous variables*.
 
-The second and subsequent expressions limit restrict the value of the variables  :math:`x1, x2, x3` and are commonly referred to as *constraints*.  Constraints are related to the availability of each resource (2015 single-variety wines).  For example, the total quantity of variety A used is :math:`2 x_1 + x_2 + x_3`; therefore, the corresponding constraint is :math:`2 x_1 + x_2 + x_3 \leq 60`.  Each variable :math:`x_1, x_2, x_3` can take any non-negative real value; hence, these are called *real*, or *continuous* variables.
+In this problem, both the objective function and the constraint expressions consist of adding and subtracting the variables :math:`x_1, x_2, x_3` multiplied by a constant.  These are called *linear expressions*.  The problem of maximizing (or minimizing) a linear objective function subject to linear constraints is called a  *linear optimization problem*.
 
-This problem contains only linear expressions: each expression contains a sum of terms, each with a variable :math:`x_1, x_2, x_3` multiplied by a constant.
-
-Such a problem, where we are maximizing (or minimizing) a linear objective subject to linear constraints, with continuous variables, is a *linear optimization problem*.
-
-An instantiation of the variables :math:`(x_1, x_2, x_3)` satisfying all the constraints is called a *feasible solution*; the set of all feasible solutions is the *feasible region*.  Among feasible solutions, *optimum solutions* (or optimal solutions) are those which maximize (or minimize) the objective.  In general, there may be more than one optimum solution, but typically the purpose is to determine one of them.  The maximum (or minimum) value of the objective function is referred to as the best objective value, or *optimum*.
-
-In this case the graphical representation of the constraints is more difficult than in the 2-dimensional case, but it is still possible,  as shown in Figure :ref:`lp2`.  For the first constraint :math:`2x_1  + x_2   + x_3  \leq 60`, all points :math:`(x_1, x_2, x_3)` satisfying it at equality (:math:`2x_1  + x_2   + x_3  = 60`) describe a plane in 3-dimension (represented in blue in Figure :ref:`lp2`).  Points on that plane and below it (i.e., on the same side as the origin) are feasible; technically, this is called the feasible half-space corresponding to this constraint.  The intersection of the halfspaces given by the three inequalities of this model and the non-negativity constraints :math:`x_1 \ge 0` , :math:`x_2 \ge 0` and :math:`x_3 \ge 0` forms a non-empty 3-dimensional object (technically known as a  *polyhedron*; in this case, as it is bounded, it is also a *polytope*), which is the feasible region.
-
-.. _lp2:
-.. figure:: FIGS/region.png
-   :scale: 70 %
-   :align: center
-
-   Polytope
-
-   Left: planes :math:`2x_1+ x_2 + x_3 = 60` (red), :math:`x_1+2x_2+x_3 =60` (blue) and :math:`x_3=30` (yellow).
-   Right: the feasible region's polytope. 
-
-The objective function of this optimization model can be represented graphically as a plane in 3-dimension given by :math:`z = 15 x_1 +18 x_2 + 30 x_3`, where :math:`z` is some arbitrary real number. If we move this plane in parallel, the value of :math:`z` increases in one direction and decreases in the other. If we continue moving it in the direction of increasing :math:`z`, the last point of the feasible region intersecting with the plane gives the optimum, which is the maximum value of the objective function, as illustrated in Figure :ref:`lp3`. 
-
-.. _lp3:
-.. figure:: FIGS/optimize.png
-   :scale: 70 %
-   :align: center
-
-   Optimum vertex
-
-   Left: the plane :math:`z = 15 x_1   + 18 x_2  + 30 x_3 = 1000`, corresponding to an objective of 1000, and the feasible region.
-   Right: Moving the plane upwards in parallel leads to the optimum: the last point of the region being intersected, :math:`x_1=10, x_2=10, x_3 = 30, z = 1230`.
-
-.. index::
-   single: SCIP
-   single: Python
-   single: pyscipopt
+The set of values for variables :math:`x_1, x_2, x_3` is called a *solution*, and if it satisfies all constraints it is called a *feasible solution*.  Among feasible solutions, those that maximize (or minimize) the objective function are called *optimal solutions*.  The maximum (or minimum) value of the objective function is called the *optimum*.  In general, there are multiple solutions with an optimum objective value, but usually the aim is to find just one of them.
 
 Finding such point can be explored in some methodical way; this is what a linear optimization solver does for finding the optimum.  Without delay, we are going to see how to solve this example using the SCIP solver.  SCIP has been developed at the Zuse Institute Berlin (ZIB), an interdisciplinary research institute for applied mathematics and computing.  SCIP solver can be called from several programming languages; for this book we have chosen the very high-level language *Python*.  For more information about SCIP and Python, see appendices :ref:`SCIPintro` and :ref:`PYTHONintro`, respectively.
 
@@ -212,10 +141,10 @@ The first thing to do is to read definitions contained in the SCIP module (a *mo
 
 ::
 
-  from pyscipopt import Model, quicksum, multidict
+  from pyscipopt import Model, quicksum
 
 The instruction for using a module is ``import``.
-In this statement we are importing the definitions of ``Model``, ``quicksum``, and ``multidict``.  We could also have used ``from pyscipopt import *``, where the asterisk means to import all the definitions available in ``pyscipopt``.
+In this statement we are importing the definitions of ``Model`` and ``quicksum``.  We could also have used ``from pyscipopt import *``, where the asterisk means to import all the definitions available in ``pyscipopt``.
 .. ; we have imported just some of them, and we could have used other idioms, as we will see later.
 One of the features of Python is that, if the appropriate module is loaded, a program can do virtually anything [#f3-intro]_.
 
@@ -223,9 +152,9 @@ The next operation is to create an optimization model; this can be done with the
 
 ::
 
-    model = Model("Wine blending")
+    model = Model("Simple linear optimization")
 
-With this instruction, we create an object named ``model``, belonging the class ``Model`` (more precisely, ``model`` is a *reference* to that object).  The model description is the (optional) string ``"Wine blending"``, passed as an argument.
+With this instruction, we create an object named ``model``, belonging the class ``Model`` (more precisely, ``model`` is a *reference* to that object).  The model description is the (optional) string ``"Simple linear optimization"``, passed as an argument.
 
 There is a number of actions that can be done with objects of type ``Model``, allowing us to add variables and constraints to the model before solving it.  We start defining variables :math:`x_1, x_2, x_3` (in the program, ``x1, x2, x3``).  We can generate a variable using the method ``addVar`` of the model object created above (a *method* is a function associated with objects of a class).  For example, to generate a variable ``x1`` we use the following statement:
 
@@ -316,7 +245,7 @@ After executing this statement --- if the problem is feasible and bounded, thus 
 
 The complete program for solving our model can be stated as follows:
 
-.. literalinclude:: ./SCIP/STRIPPED/lo_wines_simple.py
+.. literalinclude:: ./SCIP/STRIPPED/lo_simple.py
    :linenos:
 
 If we execute this Python program, the output will be:
@@ -335,6 +264,8 @@ If we execute this Python program, the output will be:
 The first lines, not shown, report progress of the SCIP solver (this can be suppressed) while lines 2 to 6 correspond to the output instructions of lines 14 to 16 of the previous program.
 
 
+.. _seminar1:
+
 .. NOTE::
 
    **Margin seminar 1**
@@ -343,7 +274,7 @@ The first lines, not shown, report progress of the SCIP solver (this can be supp
 
    Linear programming was proposed by George Dantzig in 1947, based on the work of three Nobel laureate economists: Wassily Leontief, Leonid Kantrovich, Tjalling Koopmans.  At that time, the term used was "optimization in linear structure", but it was renamed as "linear programming" in 1948, and this is the name commonly used afterwards.  The simplex method developed by Dantzig has long been the almost unique algorithm for linear optimization problems, but it was pointed out that there are (mostly theoretical) cases where the method requires a very long time.
 
-   The question as to whether linear optimization problems can be solved efficiently in the theoretical sense (in other words, whether there is an algorithm which solves linear optimization problems in polynomial time) has been answered when the ellipsoid method was proposed by Leonid Khachiyan (Khachian), of the former Soviet Union, in 1979.  Nevertheless, the algorithm of Khachiyan was only theoretical, and in practice the supremacy of the simplex method was unshaken.  However, the interior point method proposed by Narendra Karmarkar in 1984 [#f6-intro]_ has been proved to be theoretically efficient, and in practice it was found that its performance can be similar or higher than the simplex method's.  The currently available optimization solvers are usually equipped with both the simplex method (and its dual version, the *dual simplex method*) and with interior point methods, and are designed so that users can choose the most appropriate of them.
+   The question as to whether linear optimization problems can be solved efficiently in the theoretical sense (in other words, whether there is an algorithm which solves linear optimization problems in polynomial time) has been answered when the ellipsoid method was proposed by Leonid Khachiyan (Khachian), of the former Soviet Union, in 1979.  Nevertheless, the algorithm of Khachiyan was only theoretical, and in practice the supremacy of the simplex method was unshaken.  However, the interior point method proposed by Narendra Karmarkar in 1984 [#f6-intro]_ has been proved to be theoretically efficient, and in practice it was found that its performance can be similar or higher than the simplex method's.  Currently available optimization solvers are usually equipped with both the simplex method (and its dual version, the *dual simplex method*) and with interior point methods, and are designed so that users can choose the most appropriate of them.
 .. how is it in Python/SCIP?
 
 
@@ -351,16 +282,16 @@ The first lines, not shown, report progress of the SCIP solver (this can be supp
 .. _intopt:
 
 Integer Optimization
-====================
+================================================================================   
 
-For many real-world optimization problems, sometimes it is necessary to obtain solutions composed of integers instead of real numbers. For instance, there are many puzzles like this: *“In a farm having chicken and rabbits, there are 5 heads and 16 feet. How many chicken and rabbits are there?”*  Answer to this puzzle is only meaningful if the solution has integer values only.
+For many real-world optimization problems, sometimes it is necessary to obtain solutions composed of integers instead of real numbers. For instance, there are many puzzles like this: *“In a farm having chicken and rabbits, there are 5 heads and 16 feet. How many chicken and rabbits are there?”*  Answer to this puzzle is meaningful if the solution has integer values only.
 
 Let us consider a concrete puzzle.
 
 .. case study
 .. compound::
 
-   Adding the number of heads of cranes, turtles and octopuses totals 32, and the number of legs sums to 80.  What are the minimum numbers of turtles and octopuses?
+   Adding the number of heads of cranes, turtles and octopuses totals 32, and the number of legs sums to 80.  What is the minimum number of turtles and octopuses?
 
    
 For formulating this problem in integer optimization, we define the variable :math:`x` to be the number of cranes, :math:`y` to be the number of turtles, and :math:`z` to be the number of octopuses. This being done, it becomes clear that our objective is to :math:`\mbox{minimize } y + z`. We now have to specify the constraints.
@@ -426,7 +357,7 @@ Specialized solution techniques have to be used to isolate and capture the integ
 .. _transp:
 
 Transportation Problem
-======================
+================================================================================   
 
 .. index::
    single: transportation
@@ -582,11 +513,69 @@ Lines 1 to 11 are Gurobi’s optimization log, and lines 12 to 17 correspond to 
 
 
 
+.. _duality:
+
+Duality
+================================================================================   
+
+.. index::
+   single: duality
+   single: primal
+   single: dual
+   single: sensitivity analysis
+
+Let us re-visit the wine production problem considered earlier to discuss some important concepts in linear-optimization models that play vital role in *sensitivity analysis*. Sensitivity analysis is important for finding out how optimal solution and optimal value may change when there is any change to the data used in the model. Since data may not always be considered as totally accurate, such analysis can be very helpful to the decision makers.
+
+Let us assume that an entrepreneur is interested in the wine making company and would like to buy its resources. The entrepreneur then needs to find out how much to pay for each unit of each of the resources, the pure-grape wines of 2010 A, B and C. This can be done by solving the *dual* version of the model that we will discuss next.
+
+Let :math:`y_1 , y_2` and :math:`y_3` be the price paid, per barrel of Alfrocheiro, Baga, and Castelão, respectively. Then, the total price that should be paid is the quantities of each of the wines in inventory times their prices, i.e., :math:`60y_1 + 60y_2 + 30y_3`. Since the entrepreneur would like the purchasing cost to be minimum, this is the objective function for minimization. Now, for each of the resources, constraints in the model must ensure that prices are high enough for the company to sell to the entrepreneur. For instance, with two barrels of A and one barrel of B, the company can prepare blend :math:`D` worth 15; hence, it must be offered :math:`2y_1 + y_2 \ge 15`. Similarly we obtain :math:`y_1 + 2y_2 \ge 18` and :math:`y_1 + y_2 + y_3 \ge 30` for the blends M and S, respectively. Thus we can formulate a dual model, stated as follows (for a more sound derivation, using Lagrange multipliers, see :ref:`lagrange`).
+
+.. _wines_dual:
+
+.. table:: Dual of the wine blending problem.
+
+    =============     ==============    ========    ==========   ===============
+    \                 A Alfrocheiro     B Baga      C Castelão   *worth*
+    =============     ==============    ========    ==========   ===============
+    D Dry             2                 1           0            15   
+    M Medium          1                 2           0            18   
+    S Sweet           1                 1           1            30   
+    *inventory*       60                60          20            
+    =============     ==============    ========    ==========   ===============
+
+
+
+.. math::
+
+     & \mbox{minimize }        & 60 y_1  & {}+{} & 60 y_2 & {}+{} & 30 y_3               \\ 
+     & \mbox{subject to: }     & 2  y_1  & {}+{} &    y_2 &       &          & \geq & 15 \\ 
+     &                         &    y_1  & {}+{} &  2 y_2 &       &          & \geq & 18 \\ 
+     &                         &    y_1  & {}+{} &    y_2 & {}+{} &    y_3   & \geq & 30 \\ 
+     &                         &    y_1, &       &    y_2,&       &    y_3   & \geq & 0  
+
+The variables used in the linear-optimization model of the production problem are called *primal variables* and their solution values directly solve the optimization problem. The linear-optimization model in this setting is called the *primal model*.
+
+As seen above, associated with every primal model, there is a dual model. The relationships between primal and dual problems can provide significant information regarding the quality of solutions found and sensitivity of the coefficients used. Moreover, they also provide vital economic interpretations. For example, :math:`y_1`, the price paid for one unit of Alfrocheiro pure-grape wine is called the *shadow price* of that resource, because it is the amount by which the optimal value of the primal model will change for a unit increase in its availability --- or, equivalently, the price the company would be willing to pay for an additional unit of that resource.
+
+Gurobi allows us to access the shadow prices (i.e., the optimal values of the dual variables associated with each constraint) by means of the ``.Pi`` attribute of the constraint class; e.g., in the model for the wine production company of program :ref:`wblending` we are printing these values in line 31.
+
+.. index::
+   single: reduced cost
+   single: opportunity cost
+   single: sensitivity analysis
+
+Another concept important in duality is the *reduced cost*, which is associated with each decision variable. It is defined as the change in objective function value if one unit of some product that is normally not produced is forced into production; it can also be seen as the amount that the coefficient in the objective has to improve, for a variable that is zero in the optimal solution to become non-zero. Therefore, reduced cost is also appropriately called *opportunity cost*. Shadow prices and reduced costs allow *sensitivity analysis* in linear-optimization and help determine how sensitive the solutions are to small changes in the data. Such analysis can tell us how the solution will change if the objective function coefficients change or if the resource availability changes. It can also tell us how the solution may change if a new constraint is brought into the model. Gurobi allows us accessing the reduced costs through the ``.RC`` attribute of the variable class; e.g., ``x.RC`` is the reduced cost of variable ``x`` in the optimal solution.
+
+As we will see later, primal and dual models can be effectively used not only to gain insights into the solution but also to find a bound for the *linear-optimization relaxation* of an integer-optimization model; linear-optimization relaxation is obtained by having the integrality constraints relaxed to non-integer solution values. Typically, an integer-optimization model is much harder to solve than its linear-optimization relaxation. Specialized algorithms have been designed around the relaxation versions of primal as well as dual optimization models for finding optimal solution more efficiently. Optimal solution of a relaxation model gives a bound for the optimal solution value of the underlying integer-optimization model, and that can be exploited in a *branch-and-bound* scheme for solving the integer optimization model.
+
+[`source code <PROGS/lo_wines.py>`_]
+
+
 
 .. _mptransp:
 
 Multi-product Transportation Problem
-====================================
+================================================================================   
 
 In the previous transportation problem, we considered only one kind of goods produced at the production plants. In the real-world, however, that is a very restrictive scenario: A producer typically produces many different kinds of products and the customers typically demand different sets of the products available from the producers. Moreover, some producers may be specialized into producing only certain kinds of products while some others may only supply to certain customers. Therefore, a general instance of the transportation problem needs to be less restrictive and account for many such possibilities.
 
@@ -715,62 +704,227 @@ Readers may have noticed by now that for these two transportation problems, even
 [`source code <PROGS/mctransp.py>`_]
 
 
-.. _duality:
 
-Duality
--------
+.. _blending:
 
-.. index::
-   single: duality
-   single: primal
-   single: dual
-   single: sensitivity analysis
-
-Let us re-visit the wine production problem considered earlier to discuss some important concepts in linear-optimization models that play vital role in *sensitivity analysis*. Sensitivity analysis is important for finding out how optimal solution and optimal value may change when there is any change to the data used in the model. Since data may not always be considered as totally accurate, such analysis can be very helpful to the decision makers.
-
-Let us assume that an entrepreneur is interested in the wine making company and would like to buy its resources. The entrepreneur then needs to find out how much to pay for each unit of each of the resources, the pure-grape wines of 2010 A, B and C. This can be done by solving the *dual* version of the model that we will discuss next.
-
-Let :math:`y_1 , y_2` and :math:`y_3` be the price paid, per barrel of Alfrocheiro, Baga, and Castelão, respectively. Then, the total price that should be paid is the quantities of each of the wines in inventory times their prices, i.e., :math:`60y_1 + 60y_2 + 30y_3`. Since the entrepreneur would like the purchasing cost to be minimum, this is the objective function for minimization. Now, for each of the resources, constraints in the model must ensure that prices are high enough for the company to sell to the entrepreneur. For instance, with two barrels of A and one barrel of B, the company can prepare blend :math:`D` worth 15; hence, it must be offered :math:`2y_1 + y_2 \ge 15`. Similarly we obtain :math:`y_1 + 2y_2 \ge 18` and :math:`y_1 + y_2 + y_3 \ge 30` for the blends M and S, respectively. Thus we can formulate a dual model, stated as follows (for a more sound derivation, using Lagrange multipliers, see :ref:`lagrange`).
-
-.. _wines_dual:
-
-.. table:: Dual of the wine blending problem.
-
-    =============     ==============    ========    ==========   ===============
-    \                 A Alfrocheiro     B Baga      C Castelão   *worth*
-    =============     ==============    ========    ==========   ===============
-    D Dry             2                 1           0            15   
-    M Medium          1                 2           0            18   
-    S Sweet           1                 1           1            30   
-    *inventory*       60                60          20            
-    =============     ==============    ========    ==========   ===============
+Blending problem
+================================================================================   
 
 
+
+.. _fraction:
+
+Fraction optimization problem
+================================================================================   
+
+
+.. _mkp:
+
+Multi-Constrained Knapsack Problem
+================================================================================   
+
+Knapsack problems are specially structured optimization problems. The general notion of the *knapsack problem* is to fill up a knapsack of certain capacity with items from a given set such that the collection has maximum value with respect to some special attribute of the items. For instance, given a knapsack of certain volume and several items of different weights, the problem can be that of taking the heaviest collection of the items in the knapsack. Based on weights, the knapsack can then be appropriately filled by a collection that is optimal in the context of weight as the special attribute.
+
+Suppose we have a knapsack of volume 10,000 cubic-cm that can carry up to 7 Kg weight. We have four items having weights 2, 3, 4 and 5, respectively, and volume 3000, 3500, 5100 and 7200, respectively. Associated with each of the items is its value of 16, 19, 23 and 28, respectively. We would like to fill the knapsack with items such that the total value is maximum.
+
+.. _knapsack:
+.. figure:: FIGS/knapsack.png
+   :scale: 50 %
+   :align: center
+
+   Knapsack instance
+
+An integer-optimization model of this problem can be found by defining the decision variables :math:`x_j=` 1 if item :math:`j` is taken, and :math:`x_j = 0` otherwise, where :math:`j =` 1 to 4. For constraints, we need to make sure that total weight does not exceed 7 kg and total volume does not exceed 10,000 cubic-cm. Thus, we have an integer-optimization model:
 
 .. math::
 
-     & \mbox{minimize }        & 60 y_1  & {}+{} & 60 y_2 & {}+{} & 30 y_3               \\ 
-     & \mbox{subject to: }     & 2  y_1  & {}+{} &    y_2 &       &          & \geq & 15 \\ 
-     &                         &    y_1  & {}+{} &  2 y_2 &       &          & \geq & 18 \\ 
-     &                         &    y_1  & {}+{} &    y_2 & {}+{} &    y_3   & \geq & 30 \\ 
-     &                         &    y_1, &       &    y_2,&       &    y_3   & \geq & 0  
+     & \mbox{maximize}         & 16 x_1 & {}+{} & 19 x_2 & {}+{} & 23 x_3 & {}+{} &  28 x_4     \\ 
+     & \mbox{subject to: }     &  2 x_1 & {}+{} &  3 x_2 & {}+{} &  4 x_3 & {}+{} &   5 x_4 & \; \leq \; & 7 \\
+     &                         & 30 x_1 & {}+{} & 35 x_2 & {}+{} & 51 x_3 & {}+{} &  72 x_4 & \; \leq \; & 100 \\
+     &                         &    x_1,&       &    x_2,&       &    x_3,&       &     x_4 & \; \in     & \{0,1\} 
 
-The variables used in the linear-optimization model of the production problem are called *primal variables* and their solution values directly solve the optimization problem. The linear-optimization model in this setting is called the *primal model*.
+The standard version of the knapsack problem concerns the maximization of the profit subject to a constraint limiting the weight allowed in the knapsack to a constant :math:`W`; the objective is to :math:`\mbox{maximize } \sum_j {v_j x_j}` subject to :math:`\sum_j {w_j x_j \leq W}`, with :math:`x_j \in \{0,1\}`, where :math:`v_j` is the value of item :math:`j` and :math:`w_j` is its weight. A more general problem includes constraints in more than one dimension, say, :math:`m` dimensions (as in the example above); this is called the multi-constrained knapsack problem, or :math:`m`-dimensional knapsack problem. If we denote the *“weight”* of an object :math:`j` in dimension :math:`i` by :math:`a_{ij}` and the capacity of the knapsack in this dimension by :math:`b_i`, an integer-optimization model of this problem has the following structure:
 
-As seen above, associated with every primal model, there is a dual model. The relationships between primal and dual problems can provide significant information regarding the quality of solutions found and sensitivity of the coefficients used. Moreover, they also provide vital economic interpretations. For example, :math:`y_1`, the price paid for one unit of Alfrocheiro pure-grape wine is called the *shadow price* of that resource, because it is the amount by which the optimal value of the primal model will change for a unit increase in its availability --- or, equivalently, the price the company would be willing to pay for an additional unit of that resource.
+.. math::
 
-Gurobi allows us to access the shadow prices (i.e., the optimal values of the dual variables associated with each constraint) by means of the ``.Pi`` attribute of the constraint class; e.g., in the model for the wine production company of program :ref:`wblending` we are printing these values in line 31.
+     & \mbox{maximize}   \quad  & \sum_{j=1}^n v_j x_j             &  \\
+     & \mbox{subject to} \quad  & \sum_{j=1}^n a_{ij} x_j \leq b_i & \quad \mbox{ for } i=1,\cdots,m    \\
+     &                          & x_j \in \{0,1\}                  & \quad \mbox{ for } j=1,\cdots,n
+
+A Python/Gurobi model for the multi-constrained knapsack problem is:
+
+.. code-block:: python
+   :linenos:
+
+    def mkp(I, J, v, a, b):
+        model = Model("mkp")
+        x = {}
+        for j in J:
+            x[j] = model.addVar(vtype="B", name="x[%d]"%j)
+        model.update()
+        for i in I:
+            model.addConstr(quicksum(a[i,j]*x[j] for j in J) <= b[i], "Dimension[%d]"%i)
+        model.setObjective(quicksum(v[j]*x[j] for j in J), GRB.MAXIMIZE)
+        model.update()
+        return model
+
+This model can be used to solve the example above in the following way:
+
+.. code-block:: python
+   :linenos:
+
+    J,v = multidict({1:16, 2:19, 3:23, 4:28})
+    a = {(1,1):2,    (1,2):3,    (1,3):4,    (1,4):5,
+         (2,1):3000, (2,2):3500, (2,3):5100, (2,4):7200,
+         }
+    I,b = multidict({1:7, 2:10000})
+
+    model = mkp(I, J, v, a, b)
+    model.ModelSense = -1
+    model.optimize()
+    print "Optimal value=", model.ObjVal
+    EPS = 1.e-6
+    for v in model.getVars():
+        if v.X > EPS:
+        print v.VarName,v.X
+
+The solution of this example is found by Gurobi: :math:`x_2=x_3=1, x_1=x_4=0`. We will next briefly sketch how this solution is found.
+
+[`source code <PROGS/mkp.py>`_]
+
+
+
+Branch-and-bound
+----------------
+
+Many optimization problems, such as knapsack problems, require the solutions to have integer values. In particular, variables in the knapsack problem require values of either 1 or 0 for making decision on whether to include an item in the knapsack or not. Simplex method cannot be used directly to solve for such solution values because it cannot be used to capture the integer requirements on the variables. We can write the constraints :math:`0 \le x_j \le 1` for all :math:`j` for the binary requirements on the variables, but the simplex method may give fractional values for the solution. Therefore, in general, solving integer-optimization models is much harder. However, we can use a systematic approach called *branch-and-bound* for solving an integer-optimization model, using the simplex method for solving *linear-optimization relaxation* model obtained by “relaxing” any integer requirement on the variables to non-negatives only. The process begins with the linear-optimization relaxation of the integer-optimization model and solves several related linear-optimization models by simplex method for ultimately finding an optimal solution of the integer-optimization model.
+
+Let us use the previous knapsack example to illustrate this procedure. We can transform this integer-optimization model of the knapsack problem to its linear-optimization relaxation by replacing the binary requirements by the constraints :math:`0 \le x_j \le 1` for all :math:`j`. All feasible solutions of the integer-optimization model are also feasible for this linear-optimization relaxation; i.e., the polyhedron of the integer-optimization model is now contained within the polyhedron of its linear-optimization relaxation.
+
+This linear-optimization relaxation can be solved easily by the simplex method. If the optimal solution found is feasible to the integer-optimization model also --- i.e., it satisfies the binary constraints also, then we have found the optimal solution to the integer-optimization model. Otherwise, for this maximization problem, we can use the value of the optimal solution of the linear-optimization relaxation as the upper bound on the maximum value any solution of the integer-optimization model can possibly attain. Thus, optimal solution value of the linear-optimization relaxation provides an upper bound for the optimal solution value of the underlying integer-optimization model; this information can be suitably used for solving integer-optimization model via solving several related linear-optimization models.
 
 .. index::
-   single: reduced cost
-   single: opportunity cost
-   single: sensitivity analysis
+   single: branch-and-bound
+   single: branch-and-bound tree
+   single: binary search tree
 
-Another concept important in duality is the *reduced cost*, which is associated with each decision variable. It is defined as the change in objective function value if one unit of some product that is normally not produced is forced into production; it can also be seen as the amount that the coefficient in the objective has to improve, for a variable that is zero in the optimal solution to become non-zero. Therefore, reduced cost is also appropriately called *opportunity cost*. Shadow prices and reduced costs allow *sensitivity analysis* in linear-optimization and help determine how sensitive the solutions are to small changes in the data. Such analysis can tell us how the solution will change if the objective function coefficients change or if the resource availability changes. It can also tell us how the solution may change if a new constraint is brought into the model. Gurobi allows us accessing the reduced costs through the ``.RC`` attribute of the variable class; e.g., ``x.RC`` is the reduced cost of variable ``x`` in the optimal solution.
+The general notion of branch-and-bound scheme is to use bound on the optimal solution value in a tree search, as shown in Figure :ref:`bb-mkp`. Each leaf of the tree represents some linear-optimization relaxation of the original integer-optimization model. We start at the root of the search tree with the linear-optimization relaxation of the original integer-optimization model. Simplex method, gives the optimal solution :math:`x = (1,1,0.5,0)` and objective function value 46.5. Since :math:`x_3 = 0.5` is not integer and for the original integer-optimization model we need the variables to be either 0 or 1, we create two different subproblem children of the root by forcing :math:`x_3 =1` and :math:`x_3 = 0`, say :math:`P1` and :math:`P2`, respectively. Their optimal solutions are :math:`x= ( 1,1,0,0.4)` with objective value 46.2 and :math:`x= (1, 0.333,1,0)` with objective value 45.333, respectively. Now these two subproblems can be expanded again by branching on their fractional values just as before. The process will yield a *binary search tree* because :math:`x_j` can only take values of 0 and 1.
 
-As we will see later, primal and dual models can be effectively used not only to gain insights into the solution but also to find a bound for the *linear-optimization relaxation* of an integer-optimization model; linear-optimization relaxation is obtained by having the integrality constraints relaxed to non-integer solution values. Typically, an integer-optimization model is much harder to solve than its linear-optimization relaxation. Specialized algorithms have been designed around the relaxation versions of primal as well as dual optimization models for finding optimal solution more efficiently. Optimal solution of a relaxation model gives a bound for the optimal solution value of the underlying integer-optimization model, and that can be exploited in a *branch-and-bound* scheme for solving the integer optimization model.
+.. _bb-mkp:
 
-[`source code <PROGS/lo_wines.py>`_]
+.. figure::	FIGS/bbmkp.png
+   :scale: 50 %
+   :align: center
+
+   Branch-and-bound
+
+   Branch-and-bound tree for the knapsack example.
+
+
+.. index::
+   single: incumbent solution
+
+Consider the two children of :math:`P1`, :math:`P3` and :math:`P4`. As found, the optimal solutions for :math:`P3` and :math:`P4` are :math:`x = (0,1,1,0)` with objective function value 42 and :math:`x = (1,0,1,0.2)` with objective function value 44.6, respectively. Since :math:`P3` gives us a feasible solution for the integer-optimization model, we have an *incumbent* solution :math:`x = (0,1,1,0)` with value 42. If no other feasible solution to the integer-optimization model from the tree search produces objective value larger than 42, then the incumbent is the optimal solution.
+
+.. index::
+   single: cutting plane
+
+As can be seen from this small example, exploring the whole solution space can lead to a very large number of computations, as the number of nodes may potentially duplicate from one level to the other. Gurobi uses branch-and-bound in connection to other advanced techniques, such as the *cutting plane* approach, in order to achieve a very good performance on this process. As we will see later (e.g., in Chapter :ref:`graph`), there are some limitations to the size of the problems that can be tackled by Gurobi; however, a very large number of interesting, real-world problems can be solved successfully. In other situations, even if Gurobi cannot find the optimal solution, it will find a solution close to the optimum within reasonable time; in many applications, this is enough for practical implementation.
+
+
+
+.. _diet:
+
+The Modern Diet Problem
+================================================================================   
+
+In this section we consider a mathematical model for maximizing diversity of diet intakes, subject to nutritional requirements and calorie restrictions. Let :math:`\mathcal{F}` be a set of distinct foods and :math:`\mathcal{N}` be a set of nutrients. Let :math:`d_{ij}` be the amount of nutrient :math:`i` in food :math:`j`. The minimum and maximum intake of each nutrient :math:`i` is given by :math:`a_i` and :math:`b_i`, respectively. An upper bound for the quantity of each food is given by :math:`M`. Let :math:`x_j` be the number of dishes to be used for each food :math:`j`, and let :math:`y_j=1` indicate if food :math:`j` is chosen,  :math:`y_j=0` if not. Let the cost of the diet be :math:`v` and the amount of intake of each nutrient be given by :math:`z_i`. The problem is to minimize the number of distinct foods.
+
+.. math::
+     & \mbox{minimize} \quad    & \sum_{i \in \mathcal{F}} y_{j}  &     \\
+     & \mbox{subject to:} \quad & \sum_{j \in \mathcal{F}} d_{ij} x_{j} = z_i &  \forall  i \in \mathcal{N}  \\
+     &      & y_j \leq x_j &  \forall  j \in \mathcal{F}  \\
+     &      & v = \sum_{j \in \mathcal{F}} c_{j} x_{j} &   \\
+     &      & x_{j} \geq 0 & \forall  j \in \mathcal{F} \\
+     &      & y_{j} \in \{0,1\} & \forall  j \in \mathcal{F} \\
+     &      & a_{i} \leq z_{i} \leq b_{i} & \forall  i \in \mathcal{N}
+
+The first set of constraints (``Nutr`` in the program below) calculate the amount of each nutrient by summing over the selection of foods. Together with the last set of constraints (which is entered as bounds on :math:`z`, line 8 in the program below), they ensure that nutrient levels :math:`z_i` are maintained within the maximum and minimum amounts, :math:`a_i` and :math:`b_i`, as required. The second set of constraints (``Eat`` in the program below) impose that a dish variety :math:`y_j` will be allowed into the objective (i.e., be non-zero) only if at least one unit of that dish :math:`x_j` is selected. The third constraint (``Cost``, line 16 in the program) calculates cost :math:`v` of selecting a diet, while the other two constraints impose non-negativity and binary requirements on the variables :math:`x_j` and :math:`y_j` defined earlier.
+
+In Python/Gurobi, this model can be specified as follows.
+
+.. code-block:: python
+   :linenos:
+
+    def diet(F, N, a, b, c, d):
+        model = Model("modern diet")
+        x, y, z = {}, {}, {}
+        for j in F:
+            x[j] = model.addVar(lb=0, vtype="I", name="x[%s]" % j)
+            y[j] = model.addVar(vtype="B", name="y[%s]" % j)
+        for i in N:
+            z[i] = model.addVar(lb=a[i], ub=b[i], name="z[%s]" % j)
+        v = model.addVar(name="v")
+        model.update()
+        for i in N:
+            model.addConstr(quicksum(d[j][i]*x[j] for j in F) == z[i], "Nutr[%s]" % i)
+        model.addConstr(quicksum(c[j]*x[j]  for j in F) == v, "Cost")
+        for j in F:
+            model.addConstr(y[j] <= x[j], "Eat[%s]" % j)
+        model.setObjective(quicksum(y[j]  for j in F), GRB.MAXIMIZE)
+        model.__data = x, y, z, v
+        return model
+
+We may use the data provided in http://www.ampl.com/EXAMPLES/MCDONALDS/diet2.dat for applying this model to a concrete instance:
+
+.. code-block:: python
+   :linenos:
+
+    inf = GRB.INFINITY
+    N, a, b = multidict({
+    "Cal"     : [ 2000,  inf ],
+    "Carbo"   : [  350,  375 ],
+    "Protein" : [   55,  inf ],
+    "VitA"    : [  100,  inf ],
+    "VitC"    : [  100,  inf ],
+    "Calc"    : [  100,  inf ],
+    "Iron"    : [  100,  inf ],
+     })
+    F, c, d = multidict({
+    "QPounder":[1.84, {"Cal":510, "Carbo":34, "Protein":28, "VitA":15, "VitC":  6, "Calc":30, "Iron":20}],
+    "McLean"  :[2.19, {"Cal":370, "Carbo":35, "Protein":24, "VitA":15, "VitC": 10, "Calc":20, "Iron":20}],
+    "Big Mac" :[1.84, {"Cal":500, "Carbo":42, "Protein":25, "VitA": 6, "VitC":  2, "Calc":25, "Iron":20}],
+    "FFilet"  :[1.44, {"Cal":370, "Carbo":38, "Protein":14, "VitA": 2, "VitC":  0, "Calc":15, "Iron":10}],
+    "Chicken" :[2.29, {"Cal":400, "Carbo":42, "Protein":31, "VitA": 8, "VitC": 15, "Calc":15, "Iron": 8}],
+    "Fries"   :[ .77, {"Cal":220, "Carbo":26, "Protein": 3, "VitA": 0, "VitC": 15, "Calc": 0, "Iron": 2}],
+    "McMuffin":[1.29, {"Cal":345, "Carbo":27, "Protein":15, "VitA": 4, "VitC":  0, "Calc":20, "Iron":15}],
+    "1%LFMilk":[ .60, {"Cal":110, "Carbo":12, "Protein": 9, "VitA":10, "VitC":  4, "Calc":30, "Iron": 0}],
+    "OrgJuice":[ .72, {"Cal": 80, "Carbo":20, "Protein": 1, "VitA": 2, "VitC":120, "Calc": 2, "Iron": 2}],
+    })
+
+In this specification of data we have used a new feature of the ``multidict`` function: for the same key (e.g., nutrients), we may specify more than one value, and assign it to several Python variables; for example, in line 3 we are specifying both the minimum and the maximum intake amount concerning calories; respectively, ``a`` and ``b``. We are now ready to solve the diet optimization model; let us do it for several possibilities concerning the maximum calorie intake ``b["Cal"]``:
+
+.. code-block:: python
+
+    for b["Cal"] in [inf, 3500, 3000, 2500]:
+        print "\n\nDiet for a maximum of %g calories" % b["Cal"]
+        model = diet(F, N, a, b, c, d)
+        model.Params.OutputFlag = 0
+        model.optimize()
+        print "Optimal value:", model.ObjVal
+        x, y, z, v = model.__data
+        for j in x:
+            if x[j].X > 0:
+                print "%30s: %5g dishes --> %g added to objective" % (j, x[j].X, y[j].X)
+        print "amount spent:", v.X
+        print "amount of nutrients:"
+        for i in z:
+            print "%30s: %5g" % (i, z[i].X)
+
+The data is specified in lines 1 through 43. In lines 45 to 58, we solve this problem for different values of the maximum calorie intake, from infinity (i.e., no upper bound on calories) down to 2500. We encourage the reader to use Python/Gurobi to solve this problem, and check that the variety of dishes allowed decreases when the calorie intake is reduced. Interestingly, the amount spent does not vary monotonously: among those values of the calorie intake, the minimum price is for a maximum of calories of 3500 (see also Appendix :ref:`dietinput`).
+
+[`source code <PROGS/diet.py>`_]
+
 
 
 
