@@ -1,5 +1,5 @@
 """
-lo-wines-simple.py: Simple SCIP example of linear programming:
+lo_simple.py: Simple SCIP example of linear programming:
 
 maximize  15x + 18y + 30z
 subject to 2x +   y +   z <= 60
@@ -11,7 +11,7 @@ Copyright (c) by Joao Pedro PEDROSO and Mikio KUBO, 2015
 """
 from pyscipopt import Model
 
-model = Model("Wine blending (simple version)")
+model = Model("Simple linear optimization")
 
 x1 = model.addVar(vtype="C", name="x1")
 x2 = model.addVar(vtype="C", name="x2")

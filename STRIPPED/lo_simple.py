@@ -1,6 +1,6 @@
 from pyscipopt import Model
 
-model = Model("Wine blending (simple version)")
+model = Model("Simple linear optimization")
 
 x1 = model.addVar(vtype="C", name="x1")
 x2 = model.addVar(vtype="C", name="x2")
