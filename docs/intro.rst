@@ -1,3 +1,6 @@
+.. role:: py(code)
+   :language: python
+
 .. _intro:
 
 .. pull-quote::
@@ -141,10 +144,10 @@ The first thing to do is to read definitions contained in the SCIP module (a *mo
 
 ::
 
-  from pyscipopt import Model, quicksum
+  from pyscipopt import Model
 
 The instruction for using a module is ``import``.
-In this statement we are importing the definitions of ``Model`` and ``quicksum``.  We could also have used ``from pyscipopt import *``, where the asterisk means to import all the definitions available in ``pyscipopt``.
+In this statement we are importing the definitions of ``Model``.  We could also have used ``from pyscipopt import *``, where the asterisk means to import all the definitions available in ``pyscipopt``.
 .. ; we have imported just some of them, and we could have used other idioms, as we will see later.
 One of the features of Python is that, if the appropriate module is loaded, a program can do virtually anything [#f3-intro]_.
 
@@ -245,7 +248,7 @@ After executing this statement --- if the problem is feasible and bounded, thus 
 
 The complete program for solving our model can be stated as follows:
 
-.. literalinclude:: ./SCIP/STRIPPED/lo_simple.py
+.. literalinclude:: ../STRIPPED/lo_simple.py
    :linenos:
 
 If we execute this Python program, the output will be:
@@ -253,7 +256,7 @@ If we execute this Python program, the output will be:
 .. code-block:: none
    :linenos:
 
-   [solver progress output]
+   [solver progress output omitted]
    Optimal value: 1230.0
    Solution:
      x1 =  10.0
@@ -284,19 +287,31 @@ The first lines, not shown, report progress of the SCIP solver (this can be supp
 Integer Optimization
 ================================================================================   
 
+.. index::
+   single: integer optimization
+   single: formulation
+
 For many real-world optimization problems, sometimes it is necessary to obtain solutions composed of integers instead of real numbers. For instance, there are many puzzles like this: *“In a farm having chicken and rabbits, there are 5 heads and 16 feet. How many chicken and rabbits are there?”*  Answer to this puzzle is meaningful if the solution has integer values only.
 
 Let us consider a concrete puzzle.
 
 .. case study
-.. compound::
+.. container::
 
    Adding the number of heads of cranes, turtles and octopuses totals 32, and the number of legs sums to 80.  What is the minimum number of turtles and octopuses?
 
-   
-For formulating this problem in integer optimization, we define the variable :math:`x` to be the number of cranes, :math:`y` to be the number of turtles, and :math:`z` to be the number of octopuses. This being done, it becomes clear that our objective is to :math:`\mbox{minimize } y + z`. We now have to specify the constraints.
+Let us formalize this as an optimization problem with mathematical formulas.  This process of describing a situation algebraically is called the *formulation* of a problem in mathematical optimization.
 
-First, concerning the number of heads, there must be :math:`x+y+z = 32`. Cranes have two legs each, turtles have four legs each, and each octopus has eight legs. Therefore, we must have :math:`2x + 4y + 8z = 80`. We obtain the complete model after adding the non-negativity constraints.
+Then, the number of heads can be expressed as :math:`x + y + z`. Cranes have two legs each, turtles have four legs each, and each octopus has eight legs.  Therefore, the number of legs can be expressed as :math:`2x + 4y + 8z`.  So the set of :math:`x, y, z` must satisfy the following "constraints":
+
+.. math::
+
+     & \mbox{subject to: }     &    x    & {}+{} &    y   & {}+{} &    z     & \; = \; & 32 \\
+     &                         &  2 x    & {}+{} &  4 y   & {}+{} &  8 z     & \; = \; & 80 \\
+
+Since there are three variables and only two equations, there may be more than one solution.  
+Therefore, we add a condition to minimize the sum :math:`y + z` of the number of turtles and octopuses.
+This is the "objective function".  We obtain the complete model after adding the non-negativity constraints.
 
 .. math::
 
@@ -305,7 +320,7 @@ First, concerning the number of heads, there must be :math:`x+y+z = 32`. Cranes 
      &                         &  2 x    & {}+{} &  4 y   & {}+{} &  8 z     & \; = \; & 80 \\
      &                         &    x,   &       &    y,  &       &    z     & \; \geq \; & 0
 
-When we use a linear optimization solver, we obtain the solution :math:`x = 29.3333, y = 0, z = 2.66667`. This is obviously a strange answer; when animals are being put as food on the shelves splitting is possible, but not when they are alive. To solve this model, we need to add conditions to force the variables to have integer values; these are called *integrality constraints*: :math:`x, y, z` must be non-negative integers. Linear optimization problems with conditions requiring variables to be integers are called *integer optimization problems*. For the puzzle we are solving, thus, the correct model is:
+When we use a linear optimization solver, we obtain the solution :math:`x = 29.3333, y = 0, z = 2.66667`. This is obviously a strange answer.  Cranes, tortoises and octopuses can be divided when they are lined up as food on the shelves, but not when they are alive. To solve this model, we need to add conditions to force the variables to have integer values.  These are called *integrality constraints*: :math:`x, y, z` must be non-negative integers. Linear optimization problems with conditions requiring variables to be integers are called *integer optimization problems*. For the puzzle we are solving, thus, the correct model is:
 
 .. math::
 
@@ -315,39 +330,12 @@ When we use a linear optimization solver, we obtain the solution :math:`x = 29.3
      &                         &    x,   &       &    y,  &       &    z  & \; \geq \;  &  0, \mbox{integer}
 
 
-Below is a simple Python/Gurobi program for solving it. The main difference with respect to the programs that we have seen before concerns the construction of variables; in this case, there is an argument to ``addVar`` for specifying that variables are integer: ``vtype="I"``. Continuous variables (the default) can be explicitly declared with ``vtype="C"``, and binary variables --- a special case of integers, restricted to the values 0 or 1 --- are declared with ``vtype="B"``.     Parameter ``vtype``\ ’s values ``"C"``, ``"I"``, and ``"B"`` are shorthands for ``GRB.CONTINUOUS``, ``GRB.INTEGER``, and ``GRB.BINARY``, respectively. 
+Below is a simple Python/SCIP program for solving it. The main difference with respect to the programs that we have seen before concerns the declaration of variables; in this case, there is an argument to ``addVar`` for specifying that variables are integer: ``vtype="I"``. Continuous variables (the default) can be explicitly declared with ``vtype="C"``, and binary variables --- a special case of integers, restricted to the values 0 or 1 --- are declared with ``vtype="B"``.
 
-.. code-block:: python
+.. literalinclude:: ../STRIPPED/puzzle.py
    :linenos:
 
-    from gurobipy import *
-    model = Model("puzzle")
-    x = model.addVar(vtype="I", name="x")
-    y = model.addVar(vtype="I", name="y")
-    z = model.addVar(vtype="I", name="z")
-    model.update()
-    model.addConstr(x + y + z == 32,"Heads")
-    model.addConstr(2*x + 4*y + 8*z == 80,"Legs")
-    model.setObjective(y + z, GRB.MINIMIZE)
-    model.optimize()
-    print "Opt. Val.=", model.ObjVal
-    print "(x,y,z)=", x.X, y.X, z.X
-
-For small integer optimization problems like this, the answer can be quickly found: :math:`x=28`, :math:`y=2`, and :math:`z=2`. Notice that this solution is completely different of that of the continuous version; in general, we cannot guess the value of an integer solution from the continuous model. For any integer-optimization problem, by “relaxing” the integer requirements on its variables to non-negative real numbers, we get back to its linear-optimization counterpart, called *linear-optimization relaxation*.
-
-In general, integer-optimization problems are much harder to solve when compared to linear-optimization problems. Indeed, linear optimization falls in a class of problems that computer scientists call *easy*, meaning there are algorithms for solving these problems that require resources like CPU time or memory growing polynomially on the size of the problem instance. The same cannot be said for problems with integer variables; the general class of integer optimization problems is called NP-complete, and until now all known algorithms for problems in this class require resources that, in the worst case, grow exponentially with the size of the instance (see Figure :ref:`fngrowth`). One interesting property of NP-complete problems is that a polynomial algorithm for one of them would also solve all the others within polynomial resources. Some problems are said to be NP-hard; this means that their solution is at least as difficult as that of an NP-complete problem.
-
-.. _fngrowth
-.. figure::	FIGS/fngrowth.png
-   :scale: 50 %
-   :align: center
-
-   Exponential growth
-
-   Growth of the functions: linear (:math:`x`), quadratic (:math:`x^2`), and exponential (:math:`e^x`); :math:`x` ranges from 0 to 5 on the left figure, and from 0 to 10 on the right.
-
-
-Specialized solution techniques have to be used to isolate and capture the integer solutions. It should be noted that a feasible solution to an integer-optimization model is always a feasible solution to its linear-optimization relaxation. Moreover, the value of the optimal solution to the linear-programming relaxation provides a bound to its integer-optimization counterpart. This information plays a vital role in designing solution methods for integer-optimization problems, which will be discussed throughout this book.
+For small integer optimization problems like this, the answer can be quickly found: :math:`x=28`, :math:`y=2`, and :math:`z=2`, meaning that there are 28 cranes, 2 turtles and 2 octopuses.  Notice that this solution is completely different of the continuous version's; in general, we cannot guess the value of an integer solution from the continuous model.  In general, integer-optimization problems are much harder to solve when compared to linear-optimization problems.
 
 [`source code <PROGS/puzzle.py>`_]
 
@@ -360,157 +348,232 @@ Transportation Problem
 ================================================================================   
 
 .. index::
-   single: transportation
+   single: transportation problem
 
-The problems discussed so far generally address optimization issues for transforming certain materials to certain products. These problems typically require inequality constraints having coefficients assigned to the variables for capturing the transformation relationships; the right-hand-side typically denotes needs or restrictions on resources --- such as demand or production capacity. In this section, we will consider an entirely new group of problems that have much simpler constraint structures. General instances of these problems typically concern transportation of goods from suppliers to customers for meeting the demands, without exceeding supplier capacities. Different routes from suppliers to customers give various options for optimization, each having an associated cost, and an optimal solution is a minimum-cost transportation route for meeting the demands.
+The next example is a classical linear optimization problem called the *transportation problem*.
+Consider the following scenario.
 
+
+.. case study
+.. container::
+
+   You are the owner of a sports equipment sales chain.  Your products are manufactured at three factories, and you have to deliver them to five customers (demand points) (Figure :ref:`ftransp`).  After elaborating a survey, you found that the production capacity at each factory, the transportation cost to customers, and the demand amount at each customer are as shown in Table :ref:`ttransp`.  So, which of the transport routes would you choose to minimize the total cost?
 
 .. _ftransp:
 .. figure:: FIGS/transK.png
    :scale: 50 %
    :align: center
-
+ 
    Transportation problem
-
-   Graph representation of a transportation problem and its optimal transport volume
+ 
+   Graph representation of a transportation problem and its optimal transport volume.
    
-In Table :ref:`ttransp`, :math:`d_i` is the demand of the customer :math:`i`, where :math:`i =` 1 to 4. Each plant :math:`j` can supply its customers with goods but their production capacities are limited by :math:`M_j`, where :math:`j =` 1 to 3. Transportation cost for shipping goods from Plant :math:`i` to Customer :math:`j` is given in the table by :math:`c_{ij}`.
-
-
+    
 .. _ttransp:
-
-.. table:: Data for the transportation problem: transportation cost, capacities and demand,
-
+ 
+.. table:: Data for the transportation problem
+ 
    +----------------------+--+------------+----------+----------+----------+----------+----------------------+
    |                      |  |                      Customers :math:`i`               |                      |
    +----------------------+--+------------+----------+----------+----------+----------+----------------------+
    | Transportation       |  |            |          |          |          |          |                      |
    | cost :math:`c_{ij}`  |  |      1     |    2     |    3     |    4     |    5     | capacity :math:`M_j` |
    +======================+==+============+==========+==========+==========+==========+======================+
-   |                      | 1| 4          | 5        | 6        | 8        | 10       | 3000                 |
+   |                      | 1| 4          | 5        | 6        | 8        | 10       | 500                  |
    +                      +--+------------+----------+----------+----------+----------+----------------------+
-   |                      | 2| 6          | 4        | 3        | 5        |  8       | 3000                 |
+   |                      | 2| 6          | 4        | 3        | 5        |  8       | 500                  |
    + plant :math:`j`      +--+------------+----------+----------+----------+----------+----------------------+
-   |                      | 3| 9          | 7        | 4        | 2        |  4       | 3000                 |
+   |                      | 3| 9          | 7        | 4        | 2        |  4       | 500                  |
    +----------------------+--+------------+----------+----------+----------+----------+----------------------+
    | demand :math:`d_i`   |  |  80        | 270      | 250      | 160      | 180      |                      |
    +----------------------+--+------------+----------+----------+----------+----------+----------------------+
 
-Data for an instance of the transportation problem.
+Table :ref:`ttransp` shows customer demand volumes, shipping costs from each factory to each customer, and production capacity at each factory.  More precisely, :math:`d_i` is the demand of customer :math:`i`, where :math:`i =` 1 to 4. Each plant :math:`j` can supply its customers with goods but their production capacities are limited by :math:`M_j`, where :math:`j =` 1 to 3. Transportation cost for shipping goods from plant :math:`i` to customer :math:`j` is given in the table by :math:`c_{ij}`.
 
-A linear-optimization model of this transportation problem can be formulated rather easily by defining a variable :math:`x_{ij}` as the amount of goods to be shipped from plant :math:`j` to customer :math:`i`, where :math:`i = 1` to :math:`5` and :math:`j = 1` to :math:`3`. The objective is to find a minimum-cost solution for meeting the customer demands without exceeding production capacity at any plant.
+Let us formulate the above problem as a linear optimization model.  Suppose that the number of customers is :math:`n` and the number of factories is :math:`m`. Each customer is represented by :math:`i = 1, 2, \ldots, n`, and each factory by :math:`j = 1, 2, \ldots, m`.  Also, let the set of customers be :math:`I = {1, 2, \ldots, n}` and the set of factories :math:`J = {1, 2, \ldots, m}`.  Suppose that the demand amount of customer :math:`i` is :math:`d_i`, the transportation cost for shipping one unit of demand from plant :math:`i` to customer :math:`j` is :math:`c_{ij}`, and that each plant :math:`j` can supply its customers with goods, but their production capacities are limited by :math:`M_j`
+
+We use continuous variables as defined below.
 
 .. math::
-    &\mbox{ minimize }     & \sum_{i=1}^n \sum_{j=1}^m c_{ij} x_{ij}  &     \\
-    &\mbox{ subject to   } & \sum_{j=1}^m x_{ij} =d_i &  \forall  i=1,\ldots,n  \\
-    &                      & \sum_{i=1}^n x_{ij} \leq M_j &  \forall  j=1,\ldots,m  \\   
-    &                      & x_{ij} \geq 0 & \forall  i=1,\ldots,n, j=1,\ldots,m  
+    x_{ij} = \text{ amount of goods to be transported from factory $j$ to customer $i$}
 
-The minimum total cost for meeting the demands is the objective function value to be given by an optimal solution to the problem. The first set of constraints require the demands to be satisfied while the second set of constraints ensure that production capacity is not violated.
+Using the above symbols and variables, the transport problem can be formulated as the following linear optimization problem.
 
-One possibility for writing a program for solving this instance is the following.
+.. math::
+    &\mbox{ minimize }     & \quad \sum_{i \in I} \sum_{j \in J} c_{ij} x_{ij}  &     \\
+    &\mbox{ subject to   } & \quad \sum_{j \in J} x_{ij} =d_i                 & \quad \forall  i \in I  \\
+    &                      & \quad \sum_{i \in I} x_{ij} \leq M_j             & \quad \forall  j \in J  \\   
+    &                      & \quad x_{ij} \geq 0                            & \quad \forall  i \in I, j \in J
+
+
+The objective function is the minimization of the sum of transportation expenses.  The first constraint requires that the demand is satisfied, and the second constraint ensures that factory capacities are not exceeded.
+
+.. index::
+   single: dictionary
+   single: multidict
+
+Let us solve this with Python/SCIP.  First, we prepare the data needed for describing an instance [#f7-instance]_.  In the transportation problem, it is necessary to prepare data defining demand amount :math:`d_i`, transportation costs :math:`c_{ij}`, capacities :math:`M_j`.  In the following program, we will use the same symbol used in the formulation for holding a Python's dictionary.  A dictionary is composed of a key and a value as its mapping, and is generated by arranging pais of keys and values in brackets, separated by commas: ``{key1:value1, key2:value2, ...}``.  (For details on dictionaries see :ref:`appendix A.2.5`).
+
+The demand amount :math:`d_i` is stored in a dictionary ``d`` with the customer's number as the key and the demand amount as the value, and the capacity :math:`M_j` is stored in the dictionary ``M`` with the factory number as the key and the capacity as the value.
 
 .. code-block:: python
-   :linenos:
+                
+    d = {1:80 , 2:270 , 3:250 , 4:160 , 5:180}
+    M = {1:500 , 2:500 , 3:500}
 
-    from gurobipy import *
-    I,d = multidict({1:80, 2:270, 3:250 , 4:160, 5:180})
-    J,M = multidict({1:500, 2:500, 3:500})
+In addition, a list ``I`` of customers' numbers and a list ``J`` of factory numbers can be prepared as follows.
+
+.. code-block:: python
+
+    I = [1,2,3,4]
+    J = [1,2,3]   
+
+Actually, the dictionaries and lists above can be created at once by using the ``multidict`` function available in Python/SCIP, as follows.
+
+.. code-block:: python
+
+    I, d = multidict({1:80, 2:270, 3:250, 4:160, 5:180})
+    J, M = multidict({1:500, 2:500, 3:500})
+
+When the dictionary is entered as an argument, the ``multidict`` function returns a pair of values; the first is the list of keys, and the second value is the dictionary sent as argument.  Later, we will see that this function is very useful when we want to associate more than one value to each key.  (For a more detailed usage of ``multidict``, see :ref:`appendix B.4`.)
+
+.. index::
+   single: tuple
+
+Shipping cost :math:`c_{ij}` has two subscripts.  This is represented in Python by a dictionary ``c`` with a tuple of subscripts (customer and factory) as keys, and the corresponding costs as values.  A tuple is a sequence, like a list; however, unlike a list, its contents can not be changed: a tuple is *immutable*.  Tuples are created using parentheses and, due to the fact that they are immutable, can be used as keys of a dictionary (see :ref:`appendix A.2.4` for details on tuples).
+
+.. code-block:: python
+
     c = {(1,1):4,    (1,2):6,    (1,3):9,
          (2,1):5,    (2,2):4,    (2,3):7,
-         (3,1):6,    (3,2):3,    (3,3):4,
-         (4,1):8,    (4,2):5,    (4,3):3,
-         (5,1):10,   (5,2):8,    (5,3):4,
-         }
-    model = Model("transportation")
-    x = {}
-    for i in I:
-        for j in J:
-            x[i,j] = model.addVar(vtype="C", name="x[%s,%s]" % (i, j))
-    model.update()
-    for i in I:
-        model.addConstr(quicksum(x[i,j] for j in J if (i,j) in x) == d[i], name="Demand[%s]" % i)
-    for j in J:
-        model.addConstr(quicksum(x[i,j] for i in I if (i,j) in x) <= M[j], name="Capacity[%s]" % j)
-    model.setObjective(quicksum(c[i,j]*x[i,j]  for (i,j) in x), GRB.MINIMIZE)
-    model.optimize()
-    print "Optimal value:", model.ObjVal
-    EPS = 1.e-6
-    for i,j in x:
-        if x[i,j].X > EPS:
-            print "sending quantity %10g from factory %3d to customer %3d" % (x[i,j].X, j, i)
-
-We are defining all the data as Python dictionaries; the demand ``d`` has the customers as key, the capacity ``M`` has the plants as key, and the transportation cost ``c`` is a dictionary associating pairs customer-plants that can supply it to the corresponding cost. This code is concise, but we are mixing data and the model. A better approach is to have the model isolated from data, in a Python function, which we may reuse for solving different instances of the same model. In this case, the model can be written as
-
-.. code-block:: python
-   :linenos:
-
-    def transp(I, J, c, d, M):
-        model = Model("transportation")
-        x = {}
-        for i in I:
-            for j in J:
-                x[i,j] = model.addVar(vtype="C", name="x[%s,%s]" % (i, j))
-        model.update()
-        for i in I:
-            model.addConstr(quicksum(x[i,j] for j in J if (i,j) in x) == d[i], name="Demand[%s]" % i)
-        for j in J:
-            model.addConstr(quicksum(x[i,j] for i in I if (i,j) in x) <= M[j], name="Capacity[%s]" % j)
-        model.setObjective(quicksum(c[i,j]*x[i,j]  for (i,j) in x), GRB.MINIMIZE)
-        model.update()
-        model.__data = x
-        return model
-
-We can now define the data elsewhere, and build the Gurobi model for it.  Here is an example:
-
-.. code-block:: python
-   :linenos:
-
-    I,d = multidict({1:80, 2:270, 3:250 , 4:160, 5:180})
-    J,M = multidict({1:500, 2:500, 3:500})
-    c = {(1,1):4,    (1,2):6,    (1,3):9,
-         (2,1):5,    (2,2):4,    (2,3):7,
-         (3,1):6,    (3,2):3,    (3,3):4,
+         (3,1):6,    (3,2):3,    (3,3):3,
          (4,1):8,    (4,2):5,    (4,3):3,
          (5,1):10,   (5,2):8,    (5,3):4,
          }
 
-    model = transp(I, J, c, d, M)
-    model.optimize()
-    print "Optimal value:", model.ObjVal
-    EPS = 1.e-6
-    x = model.__data
-    for i,j in x:
-        if x[i,j].X > EPS:
-            print "sending quantity %10g from factory %3d to customer %3d" % (x[i,j].X, j, i)
+With this dictionary ``c``, the transportation cost from factory :math:`j` to customer :math:`i` can be accessed with ``c[(i,j)]`` or ``c[i,j]`` (in a tuple, we can omit parenthesis).
 
-The data is specified in lines 1 to 8, and the model is constructed by calling the function ``transp`` with that data as arguments (line 10). We then optimize the model and access the optimal solution. Notice that the way we use for passing model information is to add an attribute ``.__data`` to the ``model`` variable (lines 17 and 15, respectively, in the two above programs). We are using it for having access to the variable dictionary ``x`` outside the ``transp`` function; we will use this idiom to share more, different information whenever required. When we execute the above program, Python will generate the following output:
+.. attention::
+   As a programming habit, it is preferable not to use a one-letter variables such as ``d, M, c`` above.  We have done it so that the same symbols are used in the formulation and in the program.  However, in larger programs it is recommended to use meaningful variables names, such as ``demand, capacity, cost``.
+
+
+Let us write a program to solve the instance specified above.
+
+.. code-block:: python
+   :linenos:
+
+   model = Model("transportation")
+   x = {}
+   for i in I:
+       for j in J:
+           x[i,j] = model.addVar(vtype="C", name="x(%s,%s)" % (i,j))
+
+First, we define a Python variable ``x``, which initially contains an empty dictionary (line 2).   We then use dictionary ``x`` to store variable's objects, each of them corresponding to an :math:`x_{ij}` of our model (lines 3 to 5).　　As ``I`` is a list of customers' indices, the ``for`` cycle of line 3 iterates over all customers :math:`i`.
+Likewise, since ``J`` is a list of factory indices, the ``for`` cycle of line 4 iterates over the quantity transported from factory :math:`j` to customer :math:`i` (see :ref:`appendix A.4.2` for more information about iteration).
+In the rightmost part of line 5 the variable is named ``x(i,j)``; this uses Python's string format operation ``%``, where ``%s`` represents substitution into a character string.
+
+.. index::
+   single: generator
+   single: list comprehension
+   single: quicksum
+   single: sum
+
+Next we add constraints.  First, we add the constraint
+
+.. math::
+    \sum_{j \in J} x_{ij} = d_i & \quad \forall  i \in I\\
+
+which imposes that the demand is satisfied.  Since this is a constraint for all customers :math:`i`, a constraint :math:`\sum_{j=1}^m x_{ij} = d_i` is added by the ``addCons`` method (line 2) at each iteration of the ``for`` cycle of line 1.
+
+.. code-block:: python
+   :linenos:
+
+   for i in I:
+       model.addCons(quicksum(x[i,j] for j in J if (i,j) in x) == d[i], name="Demand(%s)" % i)
+
+Notice that here we also give a name, ``Demand(i)``, to constraints.  Although, as for variables, the name of a constraint may be omitted, it is desirable to add an appropriate name for later reference. The ``quicksum`` function on the second line is an enhanced version of the ``sum`` function available in Python, used in Python/SCIP to do the computation of linear expressions more efficiently. It is possible to provide ``quicksum`` explicitly with a list, or with a list generated by iteration with a ``for`` statement, as we did here; these *generator* work in the same way as in list comprehensions in Python (see :ref:`appendix A.4.2`). In the above example, we calculate a linear expression by summing variables :math:`x_{ij}` for element :math:`j \in J` by means of ``quicksum(x[i,j] for j in J)``.  (For a more detailed explanation of ``quicksum``, see :ref:`appendix B.4`.)
+
+Similarly, we add the factory capacity constraint
+
+.. math::
+    & \quad \sum_{i \in I} x_{ij} \leq M_j & \quad \forall  j \in J\\
+
+to the model as follows:
+
+.. code-block:: python
+   :linenos:
+
+   for j in J:
+       model.addCons(quicksum(x[i,j] for i in I if (i,j) in x) <= M[j], name="Capacity(%s)" % j)
+
+Again, we give a name ``Capacity(j)`` to each constraint.  In the following, to simplify the description, names of constraints are often omitted; but in fact it is safer to give an appropriate name.
+
+The objective function
+
+.. math::
+    \mbox{ minimize }     & \quad \sum_{i \in I} \sum_{j \in J} c_{ij} x_{ij}  &     \\
+
+is set using the ``setObjective`` method, as follows.
+
+.. code-block:: python
+   :linenos:
+
+   model.setObjective(quicksum(c[i,j]*x[i,j]  for (i,j) in x), "minimize")
+
+Finally, we can optimize the model and display the result.
+
+.. code-block:: python
+   :linenos:
+
+   model.optimize()
+   print("Optimal value:", model.getObjVal())
+   EPS = 1.e-6
+   for (i,j) in x:
+       if model.getVal(x[i,j]) > EPS:
+           print("sending quantity %10s from factory %3s to customer %3s" % (model.getVal(x[i,j]),j,i))
+
+In this code, ``for (i,j) in x`` in line 4 is an iteration over dictionary ``x``, holding our model's variable.  This iteration goes through all the tuples :math:`(i,j)` of customers and factories which are keys of the dictionary. Line 5 is a conditional statement for outputting only non-zero variables. Line 6 uses Python's string formatting operator ``%``, where ``%10s`` is converted into a 10-digit character string and ``%3s`` is converted into a 3-digit character string.
+
+When the above program is executed, the following result is obtained.
+The results are shown in Table :ref:`rtransp` and Figure :ref:`ftransp`.
 
 .. code-block:: none
    :linenos:
 
-    Optimize a model with 8 rows, 15 columns and 30 nonzeros
-    Presolve time: 0.00s
-    Presolved: 8 rows, 15 columns, 30 nonzeros
+   [solver progress output omitted]
+   SCIP Status        : problem is solved [optimal solution found]
+   Solving Time (sec) : 0.00
+   Solving Nodes      : 1
+   Primal Bound       : +3.35000000000000e+03 (1 solutions)
+   Dual Bound         : +3.35000000000000e+03
+   Gap                : 0.00 %
+   Optimal value: 3350.0
+   sending quantity      230.0 from factory   2 to customer   3
+   sending quantity       20.0 from factory   3 to customer   3
+   sending quantity      160.0 from factory   3 to customer   4
+   sending quantity      270.0 from factory   2 to customer   2
+   sending quantity       80.0 from factory   1 to customer   1
+   sending quantity      180.0 from factory   3 to customer   5
 
-    Iteration    Objective       Primal Inf.    Dual Inf.      Time
-           0    3.3500000e+03   2.000000e+01   0.000000e+00      0s
-           1    3.3700000e+03   0.000000e+00   0.000000e+00      0s
+.. _rtransp:
+ 
+.. table:: Optimal solution for the transportation problem
+ 
+   +----------------------+------------+----------+----------+----------+----------+-------+----------+
+   | Customer :math:`i`   |      1     |    2     |    3     |    4     |    5     |       |          |
+   +----------------------+------------+----------+----------+----------+----------+-------+----------+
+   | Amount demanded      |     80     |  270     |  250     |  160     |  180     |       |          |
+   +----------------------+------------+----------+----------+----------+----------+-------+----------+
+   | Plant :math:`j`      |     Optimum volume transported                         | total | capacity |
+   +======================+============+==========+==========+==========+==========+=======+==========+
+   |          1           | 80         |          |          |          |          | 80    | 500      |
+   +----------------------+------------+----------+----------+----------+----------+-------+----------+
+   |          2           |            | 270      | 230      |          |          | 500   | 500      |
+   +----------------------+------------+----------+----------+----------+----------+-------+----------+
+   |          3           |            |          |  20      | 160      | 180      | 360   | 500      |
+   +----------------------+------------+----------+----------+----------+----------+-------+----------+
 
-    Solved in 1 iterations and 0.00 seconds
-    Optimal objective  3.370000000e+03
-    Optimal value: 3370.0
-    sending quantity        230 from factory   2 to customer   3
-    sending quantity         20 from factory   3 to customer   3
-    sending quantity        160 from factory   3 to customer   4
-    sending quantity        270 from factory   2 to customer   2
-    sending quantity         80 from factory   1 to customer   1
-    sending quantity        180 from factory   3 to customer   5
-
-Lines 1 to 11 are Gurobi’s optimization log, and lines 12 to 17 correspond to the print instruction of the previous program (line 18).
-
-[`source code <PROGS/transp.py>`_]
-
+[`source code <src/transp_nofn.py>`_]
 
 
 .. _duality:
@@ -523,6 +586,17 @@ Duality
    single: primal
    single: dual
    single: sensitivity analysis
+
+
+Consider the following scenario.
+
+.. case study
+.. container::
+
+   You are the owner of the sports equipment sales chain that appeared on Section :ref:`transp`.  You feel that factory's capacity has become tight, so you are considering an expansion.  What kind of expenses can be expected to be reduced by expanding each of the factories?  Also, what is the additional gain that you can you get if you have additional orders from each customer?
+   
+......
+
 
 Let us re-visit the wine production problem considered earlier to discuss some important concepts in linear-optimization models that play vital role in *sensitivity analysis*. Sensitivity analysis is important for finding out how optimal solution and optimal value may change when there is any change to the data used in the model. Since data may not always be considered as totally accurate, such analysis can be very helpful to the decision makers.
 
@@ -943,3 +1017,5 @@ The data is specified in lines 1 through 43. In lines 45 to 58, we solve this pr
 
 .. [#f6-intro] Sometimes it is called a barrier method.  
 .. Gurobi has adopted this term, but essentially the same solution.
+
+.. [#f7-instance] A problem with all the parameters substituted by numerical values is called *an instance*; this meaning is different of "objects generated from a class", used in object-oriented programming, which are also called "instances" of the class.

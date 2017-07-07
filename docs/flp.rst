@@ -164,7 +164,8 @@ Weak and strong formulations
    single: uncapacitated facility location
    single: big M
 
-.. compound::
+.. case study
+.. container::
 
    Let us consider the facility location problem of the previous section, in a situation where the capacity constraint is not importante (any quantity may can be produced at each site).  This is referred to as the *uncapacitated facility location problem*.  One way of modeling this situation is to set the value of :math:`M` in the constraint
 
@@ -198,7 +199,8 @@ In the uncapacitated facility location problem, a correct formulation is to set 
 
 Intuitively, as :math:`P_A` is narrower than :math:`P_B`, the upper bound obtained by the relaxation in a maximization problem (or the lower bound in minimization) is closer to the optimum of the integer problem.
 
-.. compound::
+.. case study
+.. container::
    For example, concerning the facility location problem of the previous section, a formulation using the constraints 
 
    .. math::
@@ -261,7 +263,8 @@ Using the symbols and variables defined above, the :math:`k`-median problem can 
     &   & x_{ij} \in \{ 0,1 \}                          & \mbox{ for }  i=1,\cdots,n; j=1,\cdots,m \\
     &   & y_j \in \{ 0,1 \}                             & \mbox{ for }  j=1,\cdots,m
 
-.. compound::
+.. case study
+.. container::
    The first constraints require that each customer :math:`i` is assigned to exactly one facility :math:`j`.  The second constraint ensure that exactly :math:`k` facilities are established.  The third constraints force the facility :math:`j` to be open if the demand point :math:`i` is serviced from it.  Notice that a weaker formulation is obtained if we replace these :math:`n m` constraints by :math:`n` constraints 
 
    .. math::

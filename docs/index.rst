@@ -11,7 +11,7 @@ This book is an introduction to optimization based on `PyScipOpt <https://github
 
 Please visit the documentation's source at https://github.com/joaopedroso/scipbook for corrections and suggestions.
 
-Readable documentation can be found at `http://scipbook.readthedocs.io http://scipbook.readthedocs.io.
+Readable documentation can be found at http://scipbook.readthedocs.io.
 
 
 Copyright (C) João Pedro Pedroso, Abdur Rais, Mikio Kubo and Masakazu Muramatsu

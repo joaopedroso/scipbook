@@ -14,7 +14,7 @@ Bin packing and cutting stock problems
 This chapter deals with two classic problem: the bin packing problem and the cutting stock problem.  Let us start with some definitions and examples.
 
 .. case study
-.. compound::
+.. container::
 
    You are the person in charge of packing in a large company.  Your job is to skillfully pack items of various weights in a box with a predetermined capacity; your aim is to use as few boxes as possible.  Each of the items has a known weights, and the upper limit of the contents that can be packed in a box is 9 kg.  The weight list of items to pack is given in Table :ref:`bpp-data`.  In addition, the items you are dealing with your company are heavy; there is no concern with the volume they occupy.  So, how should these items be packed?
 
@@ -53,7 +53,7 @@ This is an example of a problem called the *bin packing problem*.  It can be des
 A related problem is the *cutting stock problem*, which is defined as follows.
 
 .. case study
-.. compound::
+.. container::
 
    You are the person in charge of cutting in a large company producing rolls of paper.  Your job is to skillfully cut the large rolls produced in a standard size into smaller rolls, with sizes demanded by the customers.  It is not always possible to fully use every roll; sometimes, it is necessary to create leftovers, called *trim loss*.  In this case, your aim is to use as few rolls as possible; in other words, to minimize the trim loss created.  The width of the large rolls is 9 meters, and there are customers' orders for seven different sizes, as detailed in Table :ref:`csp-data`.   So, how should the large rolls be cut?
 

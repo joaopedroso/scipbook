@@ -29,7 +29,7 @@ Let us start with an example of the traveling salesman problem.
 
 
 .. case study
-.. compound::
+.. container::
 
    You are thinking about taking a vacation and taking a tour of Europe.  You are currently in Zurich, Switzerland, and your aim is to watch a bullfight in Madrid, Spain, to see the Big Ben in London, U.K., to visit the Colosseum in Rome, Italy, and to drink authentic beers in Berlin, Germany.  You decide to borrow a rental helicopter, but you have to pay a high rental fee proportional to the distance traveled.  Therefore, after leaving, you wish to return to Zurich again, after visiting the other four cities (Madrid, London, Rome, Berlin) by traveling a distance as short as possible. Checking the travel distance between cities, you found that it is as shown in Figure :ref:`fig-tsp`.  Now, in what order should you travel so that distance is minimized?
 

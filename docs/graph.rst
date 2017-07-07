@@ -27,7 +27,7 @@ Graph partitioning problem
 Consider the following scenario.
 
 .. case study
-.. compound::
+.. container::
 
    Six friends are deciding how to split for forming two teams of mini-soccer (Figure :ref:`fig-gpp`).  Of course, in order to be fair, each team must have the same number of persons --- three, in this case.  However, having good friends in separate teams should be avoided as much as possible.  So, how should the group of persons be divided into two teams?
 
@@ -160,7 +160,7 @@ Maximum stable set problem
    single: maximum stable set problem
    
 .. case study
-.. compound::
+.. container::
 
    You are choosing, from a group of six friends, with whom to go for a picnic.
    However, persons linked with an edge in Figure :ref:`fig-ssp` are on very unfriendly terms with each other, so if both of them go to the picnic, it will be spoiled.
@@ -241,7 +241,7 @@ Graph coloring problem
    single: :math:`K-`\ coloring
    
 .. case study
-.. compound::
+.. container::
 
    You are concerned bout how to assign a class to each of your friends.  Those which are on unfriendly terms with each other are linked with an edge in Figure :ref:`fig-gcp`.  If put on the same class, persons on unfriendly terms will start a fight.  To divide your friends into as few classes as possible, how should you proceed?
    
