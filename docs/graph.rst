@@ -54,7 +54,7 @@ Actually, rather than creating football teams, this NP-hard problem has a number
    single: arc
    single: line
 
-This real problem is easy to understand using the concept of "graph".  A graph is an abstract object composed of *vertices* and *edges*; an edge is a link between two nodes.  Graphs are very useful tools to unambiguously represent many real problems.  As an example, let us represent a friendship relationship with a graph.
+This real problem is easy to understand using the concept of "graph".  A graph is an abstract object composed of *vertices* and *edges*; an edge is a link between two vertices.  Graphs are very useful tools to unambiguously represent many real problems.  As an example, let us represent a friendship relationship with a graph.
 
 You have six friends.  First of all, represent each of these friends by a circle; in graph theory, these circles are called *vertices*  (also called *nodes* or *points*).  As always in life, some of these fellows have a good relationship between them, whereas others have a bad relationship.  In order to organize these complicated relashionships, you connect with a line each pair of your friends which are in good terms with each other.  In graph theory, such a line is called an *edge* (also called *arc* or *line*).  When represented in this way, the friendship scenario becomes very easy to grasp.  This representation is a graph.
 
@@ -243,7 +243,7 @@ Graph coloring problem
 .. case study
 .. container::
 
-   You are concerned bout how to assign a class to each of your friends.  Those which are on unfriendly terms with each other are linked with an edge in Figure :ref:`fig-gcp`.  If put on the same class, persons on unfriendly terms will start a fight.  To divide your friends into as few classes as possible, how should you proceed?
+   You are concerned about how to assign a class to each of your friends.  Those which are on unfriendly terms with each other are linked with an edge in Figure :ref:`fig-gcp`.  If put on the same class, persons on unfriendly terms will start a fight.  To divide your friends into as few classes as possible, how should you proceed?
    
    .. _fig-gcp:
 
@@ -262,12 +262,12 @@ This is an example of the classical optimization problem called *graph coloring 
 .. pull-quote::
    Graph coloring problem
 
-   Given an undirected graph :math:`G = (V,E)`, a :math:`K-`\ partition is a division of the vertices :math:`V` into :math:`K` subsets :math:`V_1, V_2, \ldots, V_K` such that :math:`V_i \cap V_j = \emptyset, \forall i \neq j` (there is no overlap), and :math:`\bigcup_{j=1}^{K} V_j = V` (the union of subsets is the full set of vertices).  Each :math:`V_i (i=1, 2, \ldots K)` is called a *color class*.  In a :math:`K-`\ partition, if all the vertices in a color class :math:`V_i` must form a stable set (i.e., there is no edge among two vertices in that class), it is called :math:`K-`\ *coloring*.
+   Given an undirected graph :math:`G = (V,E)`, a :math:`K-`\ partition is a division of the vertices :math:`V` into :math:`K` subsets :math:`V_1, V_2, \ldots, V_K` such that :math:`V_i \cap V_j = \emptyset, \forall i \neq j` (there is no overlap), and :math:`\bigcup_{j=1}^{K} V_j = V` (the union of subsets is the full set of vertices).  Each :math:`V_i (i=1, 2, \ldots K)` is called a *color class*.  In a :math:`K-`\ partition, if all the vertices in a color class :math:`V_i` form a stable set (i.e., there is no edge among two vertices in that class), it is called :math:`K-`\ *coloring*.
 For a given undirected graph, the graph coloring problem consists of finding the minimum :math:`K` for which there is a :math:`K-`\ coloring; this is called the graph's *chromatic number*.
    
 The graph coloring problem has a variety of applications, such as timetabling and frequency allocation.
 
-For writing a mathematical formulation for the graph coloring problem, an upper bound :math:`K_{\text{max}}` to the number of colors is required.  In other words, the optimal number of colors :math:`K` determined as an integer :math:`1 \leq K \leq K_{\text{max}}`.
+For writing a mathematical formulation for the graph coloring problem, an upper bound :math:`K_{\text{max}}` of the number of colors is required.  In other words, the optimal number of colors :math:`K` determined as an integer :math:`1 \leq K \leq K_{\text{max}}`.
 
 Let us define binary variables :math:`x_{ik}` such that when a vertex :math:`i` is assigned a color :math:`k`, :math:`x_{ik}` takes the value 1; otherwise, :math:`x_{ik}` takes the value 0.  Besides, binary variable :math:`y_{k}=1` indicates that color :math:`k` has been used, i.e., set :math:`V_i` contains at least one vertex; otherwise, :math:`V_i` is empty and :math:`y_{k}=0`, indicating that color :math:`k` was not required.
 
@@ -278,9 +278,9 @@ Let us define binary variables :math:`x_{ik}` such that when a vertex :math:`i` 
                            & x_{ik} \in \{0,1\}                           & \forall i \in V; k=1, \ldots, K_{\text{max}} \\
                            & y_{k} \in \{0,1\}                            & k=1, \ldots, K_{\text{max}}
 
-The first constraint in this formulation indicates that the exactly one color is assigned to each vertex.  The second constraint connects variables :math:`x` and :math:`y`, allowing coloring with color :math:`k` only if :math:`y_k=1`, and forbids the ends of any edge :math:`\{i,j\}~`, vertices :math:`i` and :math:`j`, from having the same color simultaneously.
+The first constraint in this formulation indicates that exactly one color is assigned to each vertex.  The second constraint connects variables :math:`x` and :math:`y`, allowing coloring with color :math:`k` only if :math:`y_k=1`, and forbids the endpoits of any edge :math:`\{i,j\}~`, vertices :math:`i` and :math:`j`, from having the same color simultaneously.
 
-Many of the mathematical optimization solvers, including SCIP, use the branch-and-bound method (see Margin Seminar :ref:`branch-and-bound`).  Since all color classes in the formulation above are treated indifferently, the solution space has a great deal of symmetry.  This causes troubles to branch-and-bound, increasing enormously the size of the tree that needs to be explored.  For example, the solutions :math:`V_1 = {1,2,3}, V2 = {4,5}` and :math:`V_1 = {4,5}, V2 = {1,2,3}` are equivalent, but are represented by different vectors :math:`x` and :math:`y`.  In this case, there occurs a phenomenon where branching on any of the variables :math:`x,y` leads to no improvements in the lower bound.  When solving the graph coloring problem with a mathematical optimization solver, to avoid some symmetry in the solution space, it is recommended to add the following constraints.
+Many of the mathematical optimization solvers, including SCIP, use the branch-and-bound method (see Margin Seminar :ref:`branch-and-bound`).  Since all color classes in the formulation above are treated indifferently, the solution space has a great deal of symmetry.  Symmetry causes troubles to branch-and-bound, increasing enormously the size of the tree that needs to be explored.  For example, the solutions :math:`V_1 = {1,2,3}, V2 = {4,5}` and :math:`V_1 = {4,5}, V2 = {1,2,3}` are equivalent, but are represented by different vectors :math:`x` and :math:`y`.  In this case, there occurs a phenomenon where branching on any of the variables :math:`x,y` leads to no improvements in the lower bound.  When solving the graph coloring problem with a mathematical optimization solver, to avoid some symmetry in the solution space, it is recommended to add the following constraints.
 
 .. math::
    y_{k} \geq y_{k+1}  \quad & k=1, \ldots, K_{\text{max}}-1 \\
@@ -336,7 +336,7 @@ Follows a program in Python/SCIP implementing this formulation for the graph col
    :pyobject: gcp_fixed_k
    :linenos:
 
-The optimum :math:`K` (i.e., the smallest value such that the optimum above problems is 0) may be determined through binary search.  Given an upper and a lower bound to the chromatic number (e.g., the number of vertices :math:`n` and 1, respectively), the binary search algorithm can be written as follows.
+The optimum :math:`K` (i.e., the smallest value such that the optimum of the above problem is 0) may be determined through binary search.  Given an upper and a lower bound to the chromatic number (e.g., the number of vertices :math:`n` and 1, respectively), the binary search algorithm can be written as follows.
 
 
 .. _binsearchGCP:

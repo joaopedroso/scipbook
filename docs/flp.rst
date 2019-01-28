@@ -41,7 +41,7 @@ Capacitated facility location problem
    
 The *capacitated facility location problem* is the basis for many practical optimization problems, where the total demand that each facility may satisfy is limited. Hence, modeling such problem must take into account both demand satisfaction and capacity constraints.
 
-Let us start with a concrete example.  Consider a company with three potential sites for installing its facilities/warehouses and five demand points, as in Section :ref:`transp`.  Each site :math:`j` as a yearly *activation cost* :math:`f_j`, i.e., an annual leasing expense that is incurred for using it, independently of the volume it services.  This volume is limited to a given maximum amount that may be handled yearly, :math:`M_j`.  Additionally, there is a transportation cost :math:`c_{ij}` per unit serviced from facility :math:`j` to the demand point :math:`i`.  These data are shown in Table :ref:`cflp-data`.
+Let us start with a concrete example.  Consider a company with three potential sites for installing its facilities/warehouses and five demand points, as in Section :ref:`transp`.  Each site :math:`j` has a yearly *activation cost* :math:`f_j`, i.e., an annual leasing expense that is incurred for using it, independently of the volume it services.  This volume is limited to a given maximum amount that may be handled yearly, :math:`M_j`.  Additionally, there is a transportation cost :math:`c_{ij}` per unit serviced from facility :math:`j` to the demand point :math:`i`.  These data are shown in Table :ref:`cflp-data`.
 
 .. _cflp-data:
 
@@ -167,14 +167,14 @@ Weak and strong formulations
 .. case study
 .. container::
 
-   Let us consider the facility location problem of the previous section, in a situation where the capacity constraint is not importante (any quantity may can be produced at each site).  This is referred to as the *uncapacitated facility location problem*.  One way of modeling this situation is to set the value of :math:`M` in the constraint
+   Let us consider the facility location problem of the previous section, in a situation where the capacity constraint is not important (any quantity may can be produced at each site).  This is referred to as the *uncapacitated facility location problem*.  One way of modeling this situation is to set the value of :math:`M` in the constraint
 
    .. math::
       \sum_{i=1}^n x_{ij} \leq M_j y_j & \mbox{ for } j=1,\cdots,m
 
-   as a very large number.  Notice that the formulation is correct even if we omit constraints :math:`x_{ij} \leq d_j y_j, \mbox{ for }  i=1,\cdots,n; j=1,\cdots,m`.  Removing that constraint, the problem may suddenly become very difficult to solve, especially as it size increases; the reason is the *big :math:`M` pitfall*.
+   as a very large number.  Notice that the formulation is correct even if we omit constraints :math:`x_{ij} \leq d_j y_j, \mbox{ for }  i=1,\cdots,n; j=1,\cdots,m`.  Removing that constraint, the problem may suddenly become very difficult to solve, especially as its size increases; the reason is the *big :math:`M` pitfall*.
 
-Parameter :math:`M` represents a *large enough* number, usually called **Big M**; it is associated with one of the biggest pitfalls for beginners in mathematical optimization.  The idea behind the constraint is to model the fact the "if we do not activate a warehouse, we cannot transport from there".  However, large values for :math:`M` do disturb the model in practice.  Constraints with a "Big M" may be a burden to the mathematical optimization solver, making the model extremely difficult to solve.
+Parameter :math:`M` represents a *large enough* number, usually called **Big M**; it is associated with one of the biggest pitfalls for beginners in mathematical optimization.  The idea behind the constraint is to model the fact that "if we do not activate a warehouse, we cannot transport from there".  However, large values for :math:`M` do disturb the model in practice.  Constraints with a "Big M" may be a burden to the mathematical optimization solver, making the model extremely difficult to solve.
 
 .. TIP::
 
@@ -184,7 +184,7 @@ Parameter :math:`M` represents a *large enough* number, usually called **Big M**
 
    Whenever possible, it is better not to use a large number.  If its use is necessary, choose a number that is as small as possible, as long as the formulation is correct.   Using large numbers, as :math:`M=9999999`, is unthinkable, except for very small instances.
 
-In the uncapacitated facility location problem, a correct formulation is to set the capacity :math:`M` equal to the total amount demanded.  However, it is possible to improve the formulation by adding the contraints :math:`x_{ij} \leq d_i y_j`.  The natural question here is "what formulation should we use"?  Of course, the answer depends on the particular case; but in general *stronger formulations* are recommended.  Here, the *strength* of a formulation is not ambiguous: it can be defined in terms of the linear optimizatino relaxation as follows.
+In the uncapacitated facility location problem, a correct formulation is to set the capacity :math:`M` equal to the total amount demanded.  However, it is possible to improve the formulation by adding the contraints :math:`x_{ij} \leq d_i y_j`.  The natural question here is "what formulation should we use"?  Of course, the answer depends on the particular case; but in general *stronger formulations* are recommended.  Here, the *strength* of a formulation is not ambiguous: it can be defined in terms of the linear optimization relaxation as follows.
 
 .. index::
    single: linear optimization relaxation
@@ -197,7 +197,7 @@ In the uncapacitated facility location problem, a correct formulation is to set 
 
    Suppose that there are two formulations :math:`A` and :math:`B` for the same problem.  By excluding the integrality constraints (which force variables to take an integer value), we obtain the *linear optimization relaxation*.  Let the feasible region of formulations be :math:`P_A` and :math:`P_B`.  When the region :math:`P_B` contains :math:`P_A`, i.e., :math:`P_A \subset P_B`, formulation :math:`A` is *stronger* than formulation :math:`B` (analogously, :math:`B` is *weaker* than :math:`A`).
 
-Intuitively, as :math:`P_A` is narrower than :math:`P_B`, the upper bound obtained by the relaxation in a maximization problem (or the lower bound in minimization) is closer to the optimum of the integer problem.
+Intuitively, as :math:`P_A` is tighter than :math:`P_B`, the upper bound obtained by the relaxation in a maximization problem (or the lower bound in minimization) is closer to the optimum of the integer problem.
 
 .. case study
 .. container::
@@ -427,7 +427,7 @@ Let us denote by :math:`[a_{ij}]` the incidence matrix of :math:`G_{\theta}`, wh
                     & z_{i} \in \{ 0,1 \}    & \mbox{ for } i=1,\cdots,n \\
                     & y_j \in \{ 0,1 \} & \mbox{ for }  j=1,\cdots,m.
 
-Notice that the adjacency matrix is built upon a given value of distance :math:`\theta`, based on which are computed the sets of facilities that may service each of the customers within that distance. For a given value of :math:`\theta` there are two possibilities: either the optimal objective value of the previous optimization problem is zero (meaning that :math:`k` facilities were indeed enough for covering all the customers withing distance :math:`\theta`), of it may be greater that zero (meaning that there is at least one :math:`z_i>0`, and thus a customer could not be serviced from any of the :math:`k` open facilities). In the former case, we attempt to reduce :math:`\theta`, and check if all customers remain covered; in the latter, :math:`\theta` is increased.  This process is repeated until the bounds for :math:`\theta` are close enough, in a process called *binary search*.
+Notice that the adjacency matrix is built upon a given value of distance :math:`\theta`, based on which is computed the set of facilities that may service each of the customers within that distance. For a given value of :math:`\theta` there are two possibilities: either the optimal objective value of the previous optimization problem is zero (meaning that :math:`k` facilities were indeed enough for covering all the customers withing distance :math:`\theta`), of it may be greater that zero (meaning that there is at least one :math:`z_i>0`, and thus a customer could not be serviced from any of the :math:`k` open facilities). In the former case, we attempt to reduce :math:`\theta`, and check if all customers remain covered; in the latter, :math:`\theta` is increased.  This process is repeated until the bounds for :math:`\theta` are close enough, in a process called *binary search*.
 
 .. index::
    single: binary search

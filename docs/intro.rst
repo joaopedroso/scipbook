@@ -267,9 +267,8 @@ If we execute this Python program, the output will be:
 The first lines, not shown, report progress of the SCIP solver (this can be suppressed) while lines 2 to 6 correspond to the output instructions of lines 14 to 16 of the previous program.
 
 
-.. _seminar1:
-
 .. NOTE::
+   :name: seminar1
 
    **Margin seminar 1**
 
@@ -359,19 +358,18 @@ Consider the following scenario.
 
    You are the owner of a sports equipment sales chain.  Your products are manufactured at three factories, and you have to deliver them to five customers (demand points) (Figure :ref:`ftransp`).  After elaborating a survey, you found that the production capacity at each factory, the transportation cost to customers, and the demand amount at each customer are as shown in Table :ref:`ttransp`.  So, which of the transport routes would you choose to minimize the total cost?
 
-.. _ftransp:
 .. figure:: FIGS/transK.png
    :scale: 50 %
    :align: center
+   :name: ftransp
  
    Transportation problem
  
    Graph representation of a transportation problem and its optimal transport volume.
    
     
-.. _ttransp:
- 
 .. table:: Data for the transportation problem
+   :name: ttransp
  
    +----------------------+--+------------+----------+----------+----------+----------+----------------------+
    |                      |  |                      Customers :math:`i`               |                      |
@@ -388,7 +386,7 @@ Consider the following scenario.
    | demand :math:`d_i`   |  |  80        | 270      | 250      | 160      | 180      |                      |
    +----------------------+--+------------+----------+----------+----------+----------+----------------------+
 
-Table :ref:`ttransp` shows customer demand volumes, shipping costs from each factory to each customer, and production capacity at each factory.  More precisely, :math:`d_i` is the demand of customer :math:`i`, where :math:`i =` 1 to 4. Each plant :math:`j` can supply its customers with goods but their production capacities are limited by :math:`M_j`, where :math:`j =` 1 to 3. Transportation cost for shipping goods from plant :math:`i` to customer :math:`j` is given in the table by :math:`c_{ij}`.
+Table :ref:`ttransp` shows customer demand volumes, shipping costs from each factory to each customer, and production capacity at each factory.  More precisely, :math:`d_i` is the demand of customer :math:`i`, where :math:`i =` 1 to 5. Each plant :math:`j` can supply its customers with goods but their production capacities are limited by :math:`M_j`, where :math:`j =` 1 to 3. Transportation cost for shipping goods from plant :math:`i` to customer :math:`j` is given in the table by :math:`c_{ij}`.
 
 Let us formulate the above problem as a linear optimization model.  Suppose that the number of customers is :math:`n` and the number of factories is :math:`m`. Each customer is represented by :math:`i = 1, 2, \ldots, n`, and each factory by :math:`j = 1, 2, \ldots, m`.  Also, let the set of customers be :math:`I = {1, 2, \ldots, n}` and the set of factories :math:`J = {1, 2, \ldots, m}`.  Suppose that the demand amount of customer :math:`i` is :math:`d_i`, the transportation cost for shipping one unit of demand from plant :math:`i` to customer :math:`j` is :math:`c_{ij}`, and that each plant :math:`j` can supply its customers with goods, but their production capacities are limited by :math:`M_j`
 
@@ -406,7 +404,7 @@ Using the above symbols and variables, the transport problem can be formulated a
     &                      & \quad x_{ij} \geq 0                            & \quad \forall  i \in I, j \in J
 
 
-The objective function is the minimization of the sum of transportation expenses.  The first constraint requires that the demand is satisfied, and the second constraint ensures that factory capacities are not exceeded.
+The objective function is the minimization of the sum of transportation costs.  The first constraint requires that the demand is satisfied, and the second constraint ensures that factory capacities are not exceeded.
 
 .. index::
    single: dictionary
@@ -425,7 +423,7 @@ In addition, a list ``I`` of customers' numbers and a list ``J`` of factory numb
 
 .. code-block:: python
 
-    I = [1,2,3,4]
+    I = [1,2,3,4,5]
     J = [1,2,3]   
 
 Actually, the dictionaries and lists above can be created at once by using the ``multidict`` function available in Python/SCIP, as follows.
@@ -491,7 +489,7 @@ which imposes that the demand is satisfied.  Since this is a constraint for all 
    for i in I:
        model.addCons(quicksum(x[i,j] for j in J if (i,j) in x) == d[i], name="Demand(%s)" % i)
 
-Notice that here we also give a name, ``Demand(i)``, to constraints.  Although, as for variables, the name of a constraint may be omitted, it is desirable to add an appropriate name for later reference. The ``quicksum`` function on the second line is an enhanced version of the ``sum`` function available in Python, used in Python/SCIP to do the computation of linear expressions more efficiently. It is possible to provide ``quicksum`` explicitly with a list, or with a list generated by iteration with a ``for`` statement, as we did here; these *generator* work in the same way as in list comprehensions in Python (see :ref:`appendix A.4.2`). In the above example, we calculate a linear expression by summing variables :math:`x_{ij}` for element :math:`j \in J` by means of ``quicksum(x[i,j] for j in J)``.  (For a more detailed explanation of ``quicksum``, see :ref:`appendix B.4`.)
+Notice that here we also give a name, ``Demand(i)``, to constraints.  Although, as for variables, the name of a constraint may be omitted, it is desirable to add an appropriate name for later reference (an example of this will be seen in :ref:`duality`).  The ``quicksum`` function on the second line is an enhanced version of the ``sum`` function available in Python, used in Python/SCIP to do the computation of linear expressions more efficiently. It is possible to provide ``quicksum`` explicitly with a list, or with a list generated by iteration with a ``for`` statement, as we did here; these *generator* work in the same way as in list comprehensions in Python (see :ref:`appendix A.4.2`). In the above example, we calculate a linear expression by summing variables :math:`x_{ij}` for element :math:`j \in J` by means of ``quicksum(x[i,j] for j in J)``.  (For a more detailed explanation of ``quicksum``, see :ref:`appendix B.4`.)
 
 Similarly, we add the factory capacity constraint
 
@@ -555,9 +553,8 @@ The results are shown in Table :ref:`rtransp` and Figure :ref:`ftransp`.
    sending quantity       80.0 from factory   1 to customer   1
    sending quantity      180.0 from factory   3 to customer   5
 
-.. _rtransp:
- 
 .. table:: Optimal solution for the transportation problem
+   :name: rtransp
  
    +----------------------+------------+----------+----------+----------+----------+-------+----------+
    | Customer :math:`i`   |      1     |    2     |    3     |    4     |    5     |       |          |
@@ -583,9 +580,10 @@ Duality
 
 .. index::
    single: duality
-   single: primal
-   single: dual
+   single: primal problem
+   single: dual problem
    single: sensitivity analysis
+   single: slack variable
 
 
 Consider the following scenario.
@@ -594,8 +592,35 @@ Consider the following scenario.
 .. container::
 
    You are the owner of the sports equipment sales chain that appeared on Section :ref:`transp`.  You feel that factory's capacity has become tight, so you are considering an expansion.  What kind of expenses can be expected to be reduced by expanding each of the factories?  Also, what is the additional gain that you can you get if you have additional orders from each customer?
-   
-......
+
+
+In order to solve this problem smartly, the concept of *dual problem* is useful. Here, the dual problem is a linear optimization problem associated to the original problem (which in this context is called the *primal* problem). The derivation method and meaning of the dual problem are given in :ref:`Margin seminar 2 <seminar2>`; here, we will explain how to use information from the dual of the transportation problem with Python/SCIP.
+
+In order to investigate whether or not a factory can be expanded, let us first focus on the capacity constraint
+
+.. math::
+    & \quad \sum_{i \in I} x_{ij} \leq M_j & \quad \forall  j \in J.\\
+
+For such an inequality constraint, a variable representing the difference between the right and the left hand sides, :math:`M_j - \sum_{i \in I} x_{ij}`, is called a *slack variable*.  Of course, one can easily calculate slack variables from the optimal solution, but in Python/SCIP we can look at the ``getSlack`` attribute for constraint objects.  Also, the optimal dual variable for a constraint can be obtained with the ``getDualsolLinear`` attribute.  This represents the amount of reduction on costs when increasing the capacity constraint by one unit (see :ref:`Margin seminar 2 <seminar2>`).
+
+In order to estimate the cost of additional orders from customers, we focus on the demand satisfaction constraint
+
+.. math::
+    \sum_{j \in J} x_{ij} = d_i & \quad \forall  i \in I\\
+
+Since this is an equality constraint, all slack variables are 0.  The optimal value of the dual variable associated with this constraint represents the increase in costs as demand increases by one unit.
+
+
+.. NOTE::
+   :name: seminar2
+
+   **Margin seminar 2**
+
+   *Duality*
+
+   Duality in linear programming provides a unifying theory that develops the relationships between a given linear program and another related linear program, stated in terms of variables with this shadow-price interpretation. The importance of duality is twofold. First, fully understanding the shadow-price interpretation of the optimal simplex multipliers can prove very useful in understanding the implications of a particular linear-programming model. Second, it is often possible to solve the related linear program with the shadow prices as the variables in place of, or in conjunction with, the original linear program, thereby taking advantage of some computational efficiencies. The importance of duality for computational procedures will become more apparent in later chapters on network-flow problems and large-scale systems.
+
+..   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 Let us re-visit the wine production problem considered earlier to discuss some important concepts in linear-optimization models that play vital role in *sensitivity analysis*. Sensitivity analysis is important for finding out how optimal solution and optimal value may change when there is any change to the data used in the model. Since data may not always be considered as totally accurate, such analysis can be very helpful to the decision makers.
@@ -604,9 +629,9 @@ Let us assume that an entrepreneur is interested in the wine making company and 
 
 Let :math:`y_1 , y_2` and :math:`y_3` be the price paid, per barrel of Alfrocheiro, Baga, and Castelão, respectively. Then, the total price that should be paid is the quantities of each of the wines in inventory times their prices, i.e., :math:`60y_1 + 60y_2 + 30y_3`. Since the entrepreneur would like the purchasing cost to be minimum, this is the objective function for minimization. Now, for each of the resources, constraints in the model must ensure that prices are high enough for the company to sell to the entrepreneur. For instance, with two barrels of A and one barrel of B, the company can prepare blend :math:`D` worth 15; hence, it must be offered :math:`2y_1 + y_2 \ge 15`. Similarly we obtain :math:`y_1 + 2y_2 \ge 18` and :math:`y_1 + y_2 + y_3 \ge 30` for the blends M and S, respectively. Thus we can formulate a dual model, stated as follows (for a more sound derivation, using Lagrange multipliers, see :ref:`lagrange`).
 
-.. _wines_dual:
 
 .. table:: Dual of the wine blending problem.
+   :name: wines_dual
 
     =============     ==============    ========    ==========   ===============
     \                 A Alfrocheiro     B Baga      C Castelão   *worth*
@@ -656,6 +681,7 @@ In the previous transportation problem, we considered only one kind of goods pro
 .. figure:: FIGS/mctranspK.png
    :scale: 50 %
    :align: center
+   :name: mktransp
 
 
    Multicommodity transportation
@@ -805,6 +831,7 @@ Suppose we have a knapsack of volume 10,000 cubic-cm that can carry up to 7 Kg w
 .. figure:: FIGS/knapsack.png
    :scale: 50 %
    :align: center
+   :name: knapsack
 
    Knapsack instance
 
@@ -884,11 +911,10 @@ This linear-optimization relaxation can be solved easily by the simplex method. 
 
 The general notion of branch-and-bound scheme is to use bound on the optimal solution value in a tree search, as shown in Figure :ref:`bb-mkp`. Each leaf of the tree represents some linear-optimization relaxation of the original integer-optimization model. We start at the root of the search tree with the linear-optimization relaxation of the original integer-optimization model. Simplex method, gives the optimal solution :math:`x = (1,1,0.5,0)` and objective function value 46.5. Since :math:`x_3 = 0.5` is not integer and for the original integer-optimization model we need the variables to be either 0 or 1, we create two different subproblem children of the root by forcing :math:`x_3 =1` and :math:`x_3 = 0`, say :math:`P1` and :math:`P2`, respectively. Their optimal solutions are :math:`x= ( 1,1,0,0.4)` with objective value 46.2 and :math:`x= (1, 0.333,1,0)` with objective value 45.333, respectively. Now these two subproblems can be expanded again by branching on their fractional values just as before. The process will yield a *binary search tree* because :math:`x_j` can only take values of 0 and 1.
 
-.. _bb-mkp:
-
 .. figure::	FIGS/bbmkp.png
    :scale: 50 %
    :align: center
+   :name: bb-mkp
 
    Branch-and-bound
 

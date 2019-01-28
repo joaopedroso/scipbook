@@ -83,7 +83,7 @@ From the above discussion, we can derive the following formulation.
    &                         & X_{e} \in \{0,1\}                            & \forall e \in E.
 
 Since the number of edges connected to a vertex is called its degree, the first constraint is called *degree constraint*.
-The second constraint is called the *subtour elimination inequality* because it excludes partial tours (i.e., cycles which pass through a proper subset of vertices, rather than passing through all of them).
+The second constraint is called the *subtour elimination inequality* because it excludes partial tours (i.e., cycles which pass through a proper subset of vertices; valid cycles must pass through all the vertices).
 
 .. index:: TSP: subtour elimination inequality
 .. index:: TSP: cutset inequality
@@ -111,7 +111,7 @@ Assuming that the solution of the linear relaxation of the problem using only a 
 the problem of finding a constraint that is not satisfied for this solution is usually called the *separation problem* (notice that components of :math:`\bar{x}` can be fractional values, not necessarily 0 or 1).
 In order to design a cutting plane method, it is necessary to have an efficient algorithm for the separation problem.
 In the case of the symmetric traveling salesman problem, we can obtain a violated cutset constraint (a subtour elimination inequality) by solving a maximum flow problem for a network having :math:`\bar{x}_e` as the capacity, where :math:`\bar{x}_e` is the solution of the linear relaxation with a (possibly empty) subset of subtour elimination constraints.  Notice that if this solution has, e.g., two subtours, the maximum flow from any vertex in the first subtour to any vertex in the second is zero.  
-By solving finding the maximum flow problem, we also obtain de solution of the *minimum cut problem*, i.e., a partition of the set of vertices :math:`V` into two subsets :math:`(S, V \setminus S)` such that the capacity of the edges between :math:`S` and :math:`V \setminus S` is minimal :cite:`Ford1956`.
+By solving finding the maximum flow problem, we also obtain the solution of the *minimum cut problem*, i.e., a partition of the set of vertices :math:`V` into two subsets :math:`(S, V \setminus S)` such that the capacity of the edges between :math:`S` and :math:`V \setminus S` is minimum :cite:`Ford1956`.
 A minimum cut is obtained by solving the following max-flow problem, for sink vertex :math:`k = 2, 3, \ldots, n`:
 
 .. math::
@@ -249,6 +249,22 @@ In the method described above, we used a method to re-solve the mixed integer op
 
     It is possible to exclude the fractional solution (0.5, 0.5, 0.5) by adding the condition that :math:`x` must be integer, but instead let us try to add an linear constraint that excludes it.  In order not to exclude the optimal solution, it is necessary to generate an expression which does not intersect the polyhedron of the stable set problem.  An inequality which does not exclude an optimal solution is called a *valid inequality*.  For example, :math:`x1 + x2 \leq 1` or :math:`x1 + x2 + x3 \leq 10` are valid inequalities.  Among the valid inequalities, those excluding the solution of the linear relaxation problem are called *cutting planes*.  For example, :math:`x_1 + x_2 + x_3 \leq 1` is a cutting plane.  In this example, the expression :math:`x_1 + x_2 + x_3 \leq 1` is in contact with the two-dimensional surface (a facet) of the polyhedron of the stable set problem.  Such an expression is called a *facet-defining* inequality.  Facets of the polyhedron of a problem are the strongest valid inequalities.
 
+
+The cutting plane method is a process to iteratively solve the linear optimization problem by sequentially adding separating, valid inequalities (facet-defining inequalities are preferable) (Fig. 5.3).
+
+The cutting plane method was extended to the general integer optimization problem by Ralph Gomory, at Princeton University, in 1958.  Although this method has been shown to converge to the optimum on a finite number of iterations, in practice it failed to solve even medium-size instances (at that time).
+New theoretical developments have since that time been added to cutting plane method, which has been successfully incorporated into the branch-and-bound method, as a general solution technique for integer optimization problems.  The method of adding these inequalities at a node of the branch-and-bound method is called the *branch-and-cut*, and forms the core of a modern mathematical optimization solver.  SCIP also includes this technique, which is essential in solving large and difficult integer optimization problems.
+    
+
+.. TIP::
+
+   **Modeling tip 7**
+
+   *When the number of constraints is very large, use the cutting plane method or the branch-and-cut method.* 
+
+   In formulations in which the number of constraints becomes enormous, the subtour elimination constraint in the traveling salesman problem, it is necessary to use the cutting plane method for finding only the necessary constraints.
+
+
     
 
 .. _tsp-mtz:
@@ -259,7 +275,106 @@ Miller-Tucker-Zemlin (potential) formulation
 .. index:: TSP: potential formulation
 .. index:: TSP: Miller-Tucker-Zemlin formulation
 
-           
+Let us now consider a formulation with a number of constraints of polynomial order.
+
+Consider an asymmetric traveling salesman problem.
+The input is a directed graph :math:`G = (V, A)`, where :math:`V` is the set of vertices and :math:`A` is a set of (directed) arcs, and a distance function on the arcs :math:`c: A \to \mathbb{R}`, and the aim is to find the shortest distance cycle through all the vertices.
+
+We introduce 0-1 variables :math:`x_{ij}` which is 1 when visiting vertex :math:`j` next to vertex :math:`i`, 0 otherwise, and real variable :math:`u_i` which represent the visiting order of vertex :math:`i`.  Interpret variable :math:`u_1` as the *potential* at starting vertex :math:`u_1` (we could define any other vertex as the starting point).
+
+When visiting vertex :math:`j` next to vertex :math:`i`, a constraint will force the potential of :math:`j` to be :math:`u_j = u_i + 1`, for any vertex except 1; hence, possible values for :math:`u_i` are :math:`1, 2, ..., n-1`.
+
+Using these variables, the asymmetric traveling salesman problem can be formulated as follows.
+
+.. math::
+   & \nonumber \minim & \sum_{i \neq j} c_{ij} x_{ij}  &      \\
+   & \st              & \sum_{j: j \neq i}  x_{ij} = 1      &  i=1,\cdots,n      \\
+   &                  & \sum_{j: j \neq i}  x_{ji} = 1      &  i=1,\cdots,n   \\
+   &                  & u_i + 1 - (n-1) (1-x_{ij}) \leq u_j &  i=1,\cdots,n,\\
+   &                  &                                     &  j=2,\cdots,n: i \neq j \\
+   &                  & 1 \leq u_{i} \leq n-1               &  i=2,\cdots,n \\
+   &                  & x_{ij} \in \{0,1\}                  &  \forall i \neq j   
+
+
+
+The first and second constraints are assignment constraints, and ensure that each vertex is incident to one outgoing arc and one incoming arc.
+
+The third constraint is sometimes called Miller-Tucker-Zemlin constraint, proposed in [10], and define the order in which each vertex i is visited on a tour.  Here, since :math:`u_i` can be interpreted as the potential at vertex :math:`i`, we will call it the potential constraint.
+
+The extended formulation using the potential constraint is much weaker than the previous formulation using subtour elimination constraints.  This is because the constraint for forcing :math:`u_j = u_i + 1` only when :math:`x_{ij} = 1`, the coefficient :math:`n - 1` of the term :math:`(1 - x_{ij})` is a "Big M" (See section 2.2).
+
+The fourth constraint indicates the upper and lower bounds of the potential.
+
+In the following, we will strengthen the formulation using potential constraints by performing and operation called *lifting*.
+
+First, consider applying the lifting operation based on the potential constraint.  Add the term of $x_{ji}$ to the left side and let its coefficient be $\alpha$.
+
+.. math::
+   u_i + 1 - (n - 1)(1 - x_{ij}) + \alpha_{ji} x_{ji} \leq u_j
+
+Consider making the coefficient $\alpha$ as large as possible, as long as not to exclude feasible solutions.
+
+When $x_{ji} = 0, $\alpha$ has no impact; we obtain the original potential constraint itself, which is a valid inequality.
+
+In the case of $x_{ji} = 1$, since $x_{ij} = 0$ and $u_j + 1 = u_i$ are always valid solutions, at this time the range of $\alpha$ is:
+
+.. math::
+   \alpha \leq u_j - u_i - 1+(n-1) = n-3
+
+In order to have a constraint which is as strong as possible, while keeping feasibility, the inequality must be:
+.. math::
+   u_i + 1 - (n - 1)(1 - x_{ij}) + (n-3) x_{ji} \leq u_j
+
+Next, let us apply the lifting operation based on the lower limit inequality $1 \leq u_i$.
+Consider adding the term $(1 - x_{1i})$ to the left side, and let $\beta$ be its coefficient.
+
+.. math::
+   1 + \beta (1-x_{1i}) \leq u_i
+
+When $x_{1i} = 1$, this expression is reduced to the original form, and hence is a valid inequality.
+When $x_{1i} = 0$, since point $i$ is visited from the second place onward, there must be $u_i \geq 2$.
+Therefore, we can see that $\beta = 1$, obtaining:
+
+.. math::
+   1+(1-x_{1i}) \leq u_i
+
+Consider now adding a term of $x_{i1}$ to the left side, with coefficient $\gamma$.
+
+.. math::
+   1 + (1- x_{1i}) + \gamma x_{i1} \leq u_i
+
+
+When $x_{i1} = 0$ the expression is feasible, because it is reduced to the original form.
+
+When $x_{i1} = 0$, in the executable solution, since point $i$ is visited last, $x_{1i} = 0$ and $u_i = n - 1$.
+
+Therefore, it can be found that $\gamma = n - 3$ is satisfied, obtaining:
+
+.. math::
+    1 + (1- x_{1i}) + (n - 3) x_{1i} \leq u_i
+
+Similarly, lifting the upper bound constraint $u_i \leq n - 1$, we obtain
+
+.. math::
+   u_i \leq (n - 1) - (1 - x{i1}) - (n - 3) x_{1i}
+
+
+
+.. TIP::
+
+   **Modeling tip 8**
+
+   *Strengthening expressions with lifting* 
+
+    Often it is necessary to use a formulation that includes large numbers ("Big M") (like the potential constraints of the MTZ formulation for the asymmetric traveling salesman problem).
+
+    When solving the problem, if the solver takes a long time and the difference between the lower bound and the upper bound  (dual gap) is large, consider strengthening the expression by lifting.
+
+    Theoretically, it is desirable to derive the strongest feasible inequality (a *facet*), but even simple lifting may have a great impact.
+   
+
+   
+   
 .. _tsp-scf:
 
 Single-commodity flow formulation
@@ -267,6 +382,47 @@ Single-commodity flow formulation
 
 .. index:: TSP: single-commodity flow formulation
 
+
+
+!!!!!!!!! unchecked
+
+In this section and the next section, we introduce the formulation using the concept of "flow" (flow) of "things".
+
+This is referred to as a single type flow formulation (single accommodation flow formulation).
+
+
+Let's consider that "things" in n-1 units are placed at a specific point (1), and they are brought by a salesman for all other points.
+
+(Of course, we assume that the salesman leaves point 1.)
+
+From point 1, "n" th unit of "n-1" goes out, and one point is consumed at each point.
+
+Also, it is assumed that "sales person" can only be flown on branches where salesman did not move.
+
+In network theory, flowing "things" are called commodity, and in this formulation, we think here of carrying one kind of things, so it is called a single-product flow formulation.
+
+
+In the formulation up to the previous section, we used the 0-1 variable xij that indicates that the salesman passes the branch (i, j).
+
+Furthermore, we introduce fij as a continuous variable representing the quantity of "things" (varieties) passing through branches (i, j).
+
+Using these symbols, the single variety flow formulation can be written as follows.
+
+
+
+
+Here, the first two constraints are degree constraints, which stipulate that there are exactly one branch and one branch that will enter each point.
+
+The third constraint represents that "things" are shipped from the first point 1 to n-1 units, and the fourth constraint represents that "things" are consumed one at each point.
+
+The fifth and sixth constraints are capacity constraints, which means that "things" do not flow on branches where salesmen do not move.
+
+However, for the branch (1, j) connected to point 1, "thing" with the maximum of n-1 flows, and for the other branches "max" of "n" I have stipulated.
+
+(All may be specified as n - 1 or less, but it is somewhat enhanced expression.)
+
+
+           
 
 .. _tsp-mcf:
 
@@ -276,6 +432,30 @@ Multi-commodity flow formulation
 .. index:: TSP: multi-commodity flow formulation
 
 
+As in the previous section, consider formulation based on the flow (thing) of "things".
+
+The formulation shown here is called multi-commodity flow formulation because it thinks to flow multiple "things" (varieties).
+
+
+In the multi-product flow formulation, "things" conveyed on a point by point basis are distinguished (this is the difference from the single-product flow formulation in the previous section).
+
+From point 1, one unit type k going to another point k goes out, and at point k, one type of product k is consumed.
+
+We introduce fkij as a continuous variable representing the quantity of the product k passing through the branch (i, j).
+
+Using this, the multi-product flow formulation can be written as follows.
+
+
+
+
+Here, the first two constraints are degree constraints, which prescribe that there are exactly one branch and one outgoing branch at each point.
+
+The third constraint is that one unit of each product type k is shipped from the first point 1 and it is consumed at the point k.
+
+The fourth constraint is the capacity constraint, which means that "things" do not flow on the branch where the salesman does not move.
+
+
+The multi-product flow formulation is described by Gurobi / Python as follows.
 
 
 .. _tsptw:
@@ -284,6 +464,67 @@ Traveling Salesman Problem with Time Windows
 ============================================
            
 .. index:: TSP with time windows
+
+
+Here we consider the traveling salesman problem (travelingsalesmanproblemwithtimewindows) with a time frame that added a time frame to the traveling salesman problem.
+
+
+This problem is based on the assumption that the asymmetric traveling salesman problem assuming that a specific point 1 starts at time 0 is regarded as the traveling distance between points and the departure time for point i is the latest time ei and the latest time li It is a problem imposing the constraint that it must be between.
+
+However, if we arrive at point i earlier than time ei, we can wait until point ei on point i.
+
+
+
+One-index Potential Formulation
+--------------------------------
+
+First of all, consider the extension of the potential (Miller-Tucker-Zemlin) constraint for the traveling salesman problem considered in Section 5.1.2.
+
+We introduce a variable ti that represents the time to depart from point i.
+
+ti must satisfy the following constraints.
+
+ei≤ti≤li  ∀i=1,2,...,n
+
+However, suppose $_1 = 0$, $\ell_1 = \infty$
+
+When visiting point j next to point i (xij = 1), the time tj to depart from point j is greater than or equal to the sum of travel time cij at the time of departing point i, obtain.
+
+     t_i + c_{ij} - M (1-x_{ij}) \leq t_j \qquad  \forall i,j : j \neq 1, i \neq j
+
+
+Here, M is a constant representing a large number.
+
+It is assumed that the movement time cij is a positive number.
+
+When cij is 0, there is a possibility that ti = tj, and a partial tour circuit is formed.
+
+In order to avoid this, it is necessary to add constraints similar to the traveling salesman problem, but under the assumption of cij> 0, it is possible to remove the partial tour circuit by the above constraint..
+
+Since formulation including such a large number "BigM" is not very practical, consider strengthening by using the time frame.
+
+The smaller the value of M, the stronger the restriction.
+
+When xij = 0, the above constraint can be rewritten as M.
+
+For all feasible solutions it is necessary to set M so that the above equation holds.
+
+Since ti≤li and tj ≥ ej, the value of M can be set equal to or more than li + cij-ej.
+
+Of course, since it does not make sense as an expression unless M> 0, we obtain the following expression.
+
+
+Here, [·] + is a symbol representing max {·, 0}.
+
+
+By combining the order constraint on the traveling salesman problem and the above constraint, we obtain a potential formulation for a traveling salesman problem with time frame.
+
+
+minimize
+
+
+Like the traveling salesman problem, the potential constraint and the upper and lower limit constraints can be further enhanced by the lifting operation as follows.
+
 
 
            
@@ -296,9 +537,84 @@ Capacitated Vehicle Routing Problem
 
 
 
-!!!!!!!!!!!!!!!!!!!
+Here, consider the capacity constrained delivery planning problem (capacitatedvehiclerouting problem) as a practical extension of the traveling salesman problem.
 
 
+The capacity constrained delivery planning problem has the following assumptions:
+
+
+• A vehicle that departed from a specific point called a depot returns to the depot again via multiple customers.
+
+In this case, the order of customers passing by the truck is called a route (see Fig. 5.4).
+
+In this case, the truck is used as a generic term that refers to various means of transport such as trucks, trailers, and ships.
+
+• The maximum load weight (referred to as capacity) of a transport vehicle waiting in a depot is known.
+
+• The customer's location is known and the amount of demand for each customer is given in advance.
+
+It is assumed that the customer's demand amount does not exceed the maximum carrying weight of the truck, and each customer is to be visited exactly once.
+
+• The cost of moving between points is known.
+
+• The total amount of customers' demand in one route does not exceed the maximum carrying weight of the truck (this is called capacity constraint).
+
+• The number of types of trucks is one, and the number of trucks is predetermined.
+
+
+Applications of the delivery planning problem include delivery planning to the retail store, decision of the school bus traveling circuit, delivery of mail and newspaper, garbage collection, delivery of fuel.
+
+Of course, when applying to these applications, it is necessary to add various conditions to the above basic condition, but here we deal with only the capacity constraint as the basic form.
+
+
+Let m be the number of trucks and n be the number of points (representing customers and depots).
+
+It is assumed that customers i = 2, 3, ..., n have demand qi and their demand is carried (or collected) by a certain transporter.
+
+The transport vehicles k = 1, 2, ..., m have a finite load capacity upper limit Q, and the sum of the demand amounts carried by the trucks shall not exceed that value.
+
+Normally, it is assumed that the maximum value max {qi} of the demand amount of the customer does not exceed the capacity Q of the transporter.
+
+If customers with demand exceeding the maximum value of load capacity exist, they can be transformed to satisfy the above assumption by appropriately dividing the demand (so as to be within the upper limit of the load capacity).
+
+
+Write expenses required when the truck moves from point i to point j as cij.
+
+Here, the movement cost is symmetrical (cij = cji).
+
+The aim of the shipping plan problem is to find the optimum route of m trucks that satisfies all customers' demand (a simple closed circuit that departs from the depot and returns to the depot again).
+
+
+We introduce a variable xij that represents the number of times the truck moves between points i and j.
+
+Because we assume a symmetric problem, the variable xij is defined only between points i and j that satisfy i <j.
+
+For a branch where xij does not connect to the depot, it represents 1 when the haul passes and 0 when it is not, but in the case of so-called piston transport where it moves to the point j from the depot and returns immediately to the depot , X 1 j is 2.
+
+
+The formulation of capacity constrained delivery planning problem is as follows.
+
+
+minimiz
+
+
+Here, the first constraint specifies that there are m sets of carriers from the depot (point 1).
+
+That is, it indicates that the number of branches representing a transport vehicle entering and leaving point 1 is 2 m.
+
+The second constraint represents that a single truck visits each customer.
+
+The third constraint is a constraint that simultaneously defines the capacity constraints of the truck and prohibits partial cruises.
+
+N (S) used in this constraint is a function calculated when a customer's subset S is given, and is defined as follows.
+
+       $N(S) =$ number of vehicles required to carry customer demand within $S$
+
+In order to calculate N (S), it is necessary to solve the packing problem described in Chapter 3, but in general the following lower bounds are substituted
+
+
+As applied to the traveling salesman problem in Section 5.1.1,
+Consider a branch cut by solving a connected component on a graph where x ̄ e is a positive branch when x ̄ e (e ∈ E) is the solution of the linear relaxation problem.
 
 .. rubric:: Footnotes
 
