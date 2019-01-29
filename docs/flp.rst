@@ -66,7 +66,7 @@ This situation and its solution are represented in Figure :ref:`fig-loc`.
 .. _fig-loc:
 
 .. figure:: FIGS/flp.png
-   :scale: 75 %
+   :scale: 50 %
    :align: center
 
    Facility location
@@ -170,7 +170,7 @@ Weak and strong formulations
    Let us consider the facility location problem of the previous section, in a situation where the capacity constraint is not important (any quantity may can be produced at each site).  This is referred to as the *uncapacitated facility location problem*.  One way of modeling this situation is to set the value of :math:`M` in the constraint
 
    .. math::
-      \sum_{i=1}^n x_{ij} \leq M_j y_j & \mbox{ for } j=1,\cdots,m
+      \sum_{i=1}^n x_{ij} \leq M_j y_j  \quad \mbox{ for }  j=1,\cdots,m
 
    as a very large number.  Notice that the formulation is correct even if we omit constraints :math:`x_{ij} \leq d_j y_j, \mbox{ for }  i=1,\cdots,n; j=1,\cdots,m`.  Removing that constraint, the problem may suddenly become very difficult to solve, especially as its size increases; the reason is the *big :math:`M` pitfall*.
 
